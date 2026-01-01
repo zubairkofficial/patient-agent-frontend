@@ -1,33 +1,20 @@
 import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  MessageSquare, 
-  FileText, 
-  Settings, 
   LogOut, 
   Menu,
   HelpCircle,
   Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useLocation } from "react-router-dom";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { cn } from "@/lib/utils";
 
 export function AppSidebar() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { isOpen, toggle, close } = useSidebar();
 
   const handleLogout = () => {
     // Clear any stored data
     localStorage.clear();
-    navigate("/login");
-  };
-
-  const isActiveRoute = (path: string) => {
-    return location.pathname === path;
+    // Navigate to login or handle logout
   };
 
   const Logo = () => (
@@ -42,58 +29,6 @@ export function AppSidebar() {
     </div>
   );
 
-  const NavButton = ({ 
-    path, 
-    icon: Icon, 
-    label 
-  }: { 
-    path: string; 
-    icon: React.ElementType; 
-    label: string;
-  }) => {
-    const isActive = isActiveRoute(path);
-    
-    return (
-      <div className={cn("relative my-1", isActive && "overflow-hidden")}>
-        {isActive && (
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
-        )}
-        <Button 
-          variant="ghost" 
-          className={cn(
-            "w-full justify-start font-medium transition-all duration-200",
-            "hover:bg-accent hover:text-accent-foreground",
-            "pl-4 pr-3",
-            isActive && [
-              "bg-primary/5 text-primary font-semibold",
-              "hover:bg-primary/10",
-              "pl-5"
-            ],
-            !isActive && "text-muted-foreground"
-          )}
-          onClick={() => {
-            navigate(path);
-            if (window.innerWidth < 768) close();
-          }}
-        >
-          <Icon className={cn(
-            "mr-3 h-5 w-5 transition-colors",
-            isActive ? "text-primary" : "text-muted-foreground"
-          )} />
-          {label}
-        </Button>
-      </div>
-    );
-  };
-
-  const navigationItems = [
-    { path: "/", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/patients", icon: Users, label: "Patients" },
-    { path: "/appointments", icon: Calendar, label: "Appointments" },
-    { path: "/messages", icon: MessageSquare, label: "Messages" },
-    { path: "/documents", icon: FileText, label: "Documents" },
-    { path: "/settings", icon: Settings, label: "Settings" },
-  ];
 
   return (
     <>
@@ -133,14 +68,7 @@ export function AppSidebar() {
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           <div className="space-y-1">
-            {navigationItems.map((item) => (
-              <NavButton
-                key={item.path}
-                path={item.path}
-                icon={item.icon}
-                label={item.label}
-              />
-            ))}
+            {/* Navigation items can be added here */}
           </div>
         </nav>
 

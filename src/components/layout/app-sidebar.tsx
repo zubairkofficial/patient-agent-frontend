@@ -19,7 +19,7 @@ export function AppSidebar() {
 
   const Logo = () => (
     <div className="flex items-center space-x-3 px-2">
-      <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
+      <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md">
         <Activity className="h-5 w-5 text-primary-foreground" />
       </div>
       <div className="flex flex-col">

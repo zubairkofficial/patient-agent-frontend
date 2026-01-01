@@ -1,38 +1,29 @@
-import { AppSidebar } from "./app-sidebar";
-import { SidebarProvider } from "@/contexts/sidebar-context";
-import { useSidebar } from "@/contexts/sidebar-context";
-import { cn } from "@/lib/utils";
+import { Outlet } from "react-router-dom";
+import { Activity } from "lucide-react";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-function LayoutContent({ children }: LayoutProps) {
-  const { isOpen } = useSidebar();
-
+const Layout = () => {
   return (
-    <div className="relative min-h-screen bg-background">
-      <AppSidebar />
-      <main 
-        className={cn(
-          "transition-all duration-300 ease-in-out",
-          "pt-16 md:pt-0", // Padding top for mobile header
-          isOpen ? "md:pl-72" : "md:pl-0"
-        )}
-      >
-        <div className="w-full h-full min-h-screen">
-          {children}
+    <div className="flex flex-col w-screen min-h-screen">
+      <div id="header-div" className="flex w-full h-[70px]">
+        <div className="flex items-center w-full">
+          <div className="flex items-center ml-[2vw]">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md mr-3">
+              <Activity className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-lg font-bold text-foreground leading-tight">Patient Agent</h1>
+              <p className="text-xs text-muted-foreground">Healthcare Management</p>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <main className="flex items-center justify-start w-full h-full">
+        <Outlet />
       </main>
     </div>
   );
-}
+};
 
-export function Layout({ children }: LayoutProps) {
-  return (
-    <SidebarProvider>
-      <LayoutContent>{children}</LayoutContent>
-    </SidebarProvider>
-  );
-}
+export default Layout;
 

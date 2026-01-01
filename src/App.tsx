@@ -1,13 +1,20 @@
-import { Layout } from '@/components/layout/layout'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Layout from '@/components/layout/layout'
 
 function App() {
   return (
-    <Layout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Welcome</h1>
-        <p className="text-muted-foreground mt-2">Your content goes here</p>
-      </div>
-    </Layout>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={
+            <div className="m-[2vw]">
+              <h1 className="text-2xl font-bold">Welcome</h1>
+              <p className="text-muted-foreground mt-2">Your content goes here</p>
+            </div>
+          } />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Mail, Lock, Activity, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button/Button"
 
 const Login = () => {
   const navigate = useNavigate()
@@ -273,4 +273,3 @@ const Login = () => {
 }
 
 export default Login
-

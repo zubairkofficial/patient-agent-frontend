@@ -1,12 +1,13 @@
 import axios from "axios";
 import type { AxiosInstance } from "axios";
+import { BASE_URL } from "@/utils/global.utils";
 
 export class AuthService {
   private api: AxiosInstance;
 
   constructor() {
     this.api = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL,
+      baseURL: BASE_URL,
       headers: {
         "Content-Type": "application/json",
       },

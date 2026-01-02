@@ -8,6 +8,8 @@ interface ButtonProps {
   onClick?: () => void
   className?: string
   disabled?: boolean
+  htmlType?: "button" | "submit" | "reset"
+  children?: React.ReactNode
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -16,7 +18,9 @@ const Button: React.FC<ButtonProps> = ({
   text,
   onClick,
   className,
-  disabled = false
+  disabled = false,
+  htmlType = "button",
+  children
 }) => {
   const baseClasses = "rounded-md font-medium transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
   
@@ -33,7 +37,7 @@ const Button: React.FC<ButtonProps> = ({
   
   return (
     <button
-      type="button"
+      type={htmlType}
       onClick={onClick}
       disabled={disabled}
       className={cn(
@@ -43,7 +47,7 @@ const Button: React.FC<ButtonProps> = ({
         className
       )}
     >
-      {text}
+      {children || text}
     </button>
   )
 }

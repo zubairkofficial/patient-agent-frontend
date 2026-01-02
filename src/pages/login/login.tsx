@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Mail, Lock, Activity, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 const Login = () => {
   const navigate = useNavigate()
@@ -220,14 +221,14 @@ const Login = () => {
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
+            <Button
+              type="primary"
+              size="large"
+              text={isSubmitting ? "Signing in..." : "Sign In"}
               disabled={isSubmitting}
+              htmlType="submit"
               className={cn(
-                "w-full h-12 rounded-lg font-semibold text-base transition-all duration-200",
-                "outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary",
-                "bg-primary text-primary-foreground hover:bg-primary/90",
+                "w-full rounded-lg font-semibold",
                 "shadow-md hover:shadow-lg shadow-primary/20 hover:shadow-primary/30",
                 "transform hover:scale-[1.01] active:scale-[0.99]"
               )}
@@ -240,7 +241,7 @@ const Login = () => {
               ) : (
                 "Sign In"
               )}
-            </button>
+            </Button>
 
             {/* Divider */}
             <div className="relative my-6">

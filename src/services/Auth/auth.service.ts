@@ -81,6 +81,21 @@ export class AuthService {
     }
   }
 
+  // 📧 SEND OTP
+  async sendOTP(payload: {
+    email: string;
+  }) {
+    try {
+      const response = await this.api.post(
+        "/auth/send-otp",
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   // ✅ VERIFY EMAIL
   async verifyEmail(payload: {
     email: string;

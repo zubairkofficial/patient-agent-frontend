@@ -2,6 +2,20 @@ import axios from "axios";
 import type { AxiosInstance, AxiosError } from "axios";
 import { BASE_URL } from "@/utils/global.utils";
 
+/**
+ * AuthService - Handles all authentication-related API calls
+ * 
+ * All endpoints match the backend AuthController:
+ * - POST /auth/register
+ * - POST /auth/login
+ * - POST /auth/send-otp
+ * - POST /auth/verify-otp
+ * - POST /auth/change-password
+ * - POST /auth/forgot-password
+ * - POST /auth/verify-email
+ * 
+ * All responses follow the format: { success: boolean, message: string, data?: any }
+ */
 export class AuthService {
   private api: AxiosInstance;
 
@@ -14,7 +28,43 @@ export class AuthService {
     });
   }
 
-  // 🔐 LOGIN
+  /**
+   * Register a new user
+   * POST /auth/register
+   * 
+   * @param payload - { email, password, firstName, lastName }
+   * @returns { success: boolean, message: string, data: { user: { id, email, firstName, lastName } } }
+   */
+  async register(payload: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/register", payload);
+
+      // Backend returns: { success, message, data: { user } }
+      const { data } = response.data;
+      const { user } = data || {};
+
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Login user
+   * POST /auth/login
+   * 
+   * @param payload - { email, password }
+   * @returns { success: boolean, message: string, data: { accessToken: string } }
+   */
   async login(payload: {
     email: string;
     password: string;
@@ -36,55 +86,18 @@ export class AuthService {
     }
   }
 
-  // 📝 REGISTER
-  async register(payload: {
-    email: string;
-    firstName: string;
-    lastName: string;
-    password: string;
-  }) {
-    try {
-      const response = await this.api.post("/auth/register", payload);
-
-      // Backend returns: { success, message, data: { user } }
-      const { data } = response.data;
-      const { user } = data || {};
-
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
-      }
-
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  // 🔁 FORGOT PASSWORD
-  async forgotPassword(payload: {
-    email: string;
-  }) {
-    try {
-      const response = await this.api.post(
-        "/auth/forgot-password",
-        payload
-      );
-      // Backend returns: { success, message }
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  // 📧 SEND OTP
+  /**
+   * Send OTP to user's email
+   * POST /auth/send-otp
+   * 
+   * @param payload - { email }
+   * @returns { success: boolean, message: string }
+   */
   async sendOTP(payload: {
     email: string;
   }) {
     try {
-      const response = await this.api.post(
-        "/auth/send-otp",
-        payload
-      );
+      const response = await this.api.post("/auth/send-otp", payload);
       // Backend returns: { success, message }
       return response.data;
     } catch (error) {
@@ -92,33 +105,19 @@ export class AuthService {
     }
   }
 
-  // ✅ VERIFY EMAIL
-  async verifyEmail(payload: {
-    email: string;
-    otp: string;
-  }) {
-    try {
-      const response = await this.api.post(
-        "/auth/verify-email",
-        payload
-      );
-      // Backend returns: { success, message, data: { user } }
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  // ✅ VERIFY OTP
+  /**
+   * Verify OTP
+   * POST /auth/verify-otp
+   * 
+   * @param payload - { email, otp }
+   * @returns { success: boolean, message: string }
+   */
   async verifyOTP(payload: {
     email: string;
     otp: string;
   }) {
     try {
-      const response = await this.api.post(
-        "/auth/verify-otp",
-        payload
-      );
+      const response = await this.api.post("/auth/verify-otp", payload);
       // Backend returns: { success, message }
       return response.data;
     } catch (error) {
@@ -126,18 +125,60 @@ export class AuthService {
     }
   }
 
-  // 🔑 CHANGE PASSWORD
+  /**
+   * Change password using OTP
+   * POST /auth/change-password
+   * 
+   * @param payload - { email, otp, newPassword }
+   * @returns { success: boolean, message: string }
+   */
   async changePassword(payload: {
     email: string;
     otp: string;
     newPassword: string;
   }) {
     try {
-      const response = await this.api.post(
-        "/auth/change-password",
-        payload
-      );
+      const response = await this.api.post("/auth/change-password", payload);
       // Backend returns: { success, message }
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Forgot password - sends password reset OTP
+   * POST /auth/forgot-password
+   * 
+   * @param payload - { email }
+   * @returns { success: boolean, message: string }
+   */
+  async forgotPassword(payload: {
+    email: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/forgot-password", payload);
+      // Backend returns: { success, message }
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Verify email with OTP
+   * POST /auth/verify-email
+   * 
+   * @param payload - { email, otp }
+   * @returns { success: boolean, message: string, data: { user: { id, email, firstName, lastName } } }
+   */
+  async verifyEmail(payload: {
+    email: string;
+    otp: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/verify-email", payload);
+      // Backend returns: { success, message, data: { user } }
       return response.data;
     } catch (error) {
       throw this.handleError(error);

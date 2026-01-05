@@ -14,7 +14,6 @@ export class AuthService {
     });
   }
 
-  // 🔐 LOGIN
   async login(payload: {
     email: string;
     password: string;
@@ -22,15 +21,11 @@ export class AuthService {
     try {
       const response = await this.api.post("/auth/login", payload);
 
-      // assuming backend returns token & user
-      const { accessToken, user } = response.data;
+      const { data } = response.data;
+      const { accessToken } = data || {};
 
       if (accessToken) {
         localStorage.setItem("accessToken", accessToken);
-      }
-
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
       }
 
       return response.data;

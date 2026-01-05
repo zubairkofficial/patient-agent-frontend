@@ -1,12 +1,14 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from '@/components/layout/Layout/Layout'
 import Login from '@/pages/Login/Login'
+import Register from '@/pages/signup/Register'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Register />} />
         <Route path="/" element={<Layout />}>
           <Route index element={
             <div className="m-[2vw]">

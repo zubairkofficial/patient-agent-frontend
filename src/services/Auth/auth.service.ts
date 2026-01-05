@@ -39,6 +39,33 @@ export class AuthService {
     }
   }
 
+  // 📝 REGISTER
+  async register(payload: {
+    email: string;
+    firstname: string;
+    lastname: string;
+    password: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/register", payload);
+
+      // assuming backend returns token & user
+      const { accessToken, user } = response.data;
+
+      if (accessToken) {
+        localStorage.setItem("accessToken", accessToken);
+      }
+
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   // 🔁 FORGOT PASSWORD
   async forgotPassword(payload: {
     email: string;

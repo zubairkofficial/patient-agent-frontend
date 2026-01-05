@@ -128,6 +128,23 @@ export class AuthService {
     }
   }
 
+  // 🔑 CHANGE PASSWORD
+  async changePassword(payload: {
+    email: string;
+    otp: string;
+    password: string;
+  }) {
+    try {
+      const response = await this.api.post(
+        "/auth/change-password",
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   // 🚪 LOGOUT (NO API CALL)
   async logout() {
     try {

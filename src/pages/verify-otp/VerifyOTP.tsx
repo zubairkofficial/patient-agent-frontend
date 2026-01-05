@@ -84,8 +84,8 @@ const VerifyOTP = () => {
       // Simulate API call
       setTimeout(() => {
         setIsSubmitting(false)
-        // Navigate to login or reset password page after successful verification
-        navigate("/login")
+        // Navigate to change password page with email and otp as query parameters
+        navigate(`/change-password?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(formData.otp)}`)
       }, 1000)
     }
   }

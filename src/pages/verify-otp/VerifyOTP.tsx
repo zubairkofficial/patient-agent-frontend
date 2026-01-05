@@ -1,29 +1,42 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { Mail, Activity, ArrowLeft } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useNavigate, Link, useSearchParams } from "react-router-dom"
+import { Activity, ArrowLeft, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/Button/Button"
 
-const SendOTP = () => {
+const VerifyOTP = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const email = searchParams.get("email") || ""
+  
   const [formData, setFormData] = useState({
-    email: ""
+    otp: ""
   })
   const [errors, setErrors] = useState({
-    email: ""
+    otp: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+  // Redirect if email is not provided
+  useEffect(() => {
+    if (!email) {
+      navigate("/send-otp")
+    }
+  }, [email, navigate])
+
+  const validateOTP = (otp: string): boolean => {
+    // OTP should be numeric and typically 4-6 digits
+    const otpRegex = /^\d{4,6}$/
+    return otpRegex.test(otp)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
+    // Only allow numeric input
+    const numericValue = value.replace(/\D/g, "")
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: numericValue
     }))
     
     // Clear error when user starts typing
@@ -38,10 +51,10 @@ const SendOTP = () => {
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     
-    if (name === "email" && value && !validateEmail(value)) {
+    if (name === "otp" && value && !validateOTP(value)) {
       setErrors(prev => ({
         ...prev,
-        email: "Please enter a valid email address"
+        otp: "OTP must be 4-6 digits"
       }))
     }
   }
@@ -51,16 +64,16 @@ const SendOTP = () => {
     
     // Validate all fields
     const newErrors = {
-      email: ""
+      otp: ""
     }
     
     let isValid = true
     
-    if (!formData.email) {
-      newErrors.email = "Email is required"
+    if (!formData.otp) {
+      newErrors.otp = "OTP is required"
       isValid = false
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+    } else if (!validateOTP(formData.otp)) {
+      newErrors.otp = "OTP must be 4-6 digits"
       isValid = false
     }
     
@@ -71,10 +84,14 @@ const SendOTP = () => {
       // Simulate API call
       setTimeout(() => {
         setIsSubmitting(false)
-        // Navigate to verify OTP page with email as query parameter
-        navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`)
+        // Navigate to login or reset password page after successful verification
+        navigate("/login")
       }, 1000)
     }
+  }
+
+  if (!email) {
+    return null // Will redirect in useEffect
   }
 
   return (
@@ -88,52 +105,57 @@ const SendOTP = () => {
                 <Activity className="h-6 w-6 text-primary-foreground" />
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-                Send OTP
+                Verify OTP
               </h1>
             </div>
             <p className="text-muted-foreground text-base text-center">
-              Enter your email address to receive a verification code
+              Enter the verification code sent to
+            </p>
+            <p className="text-foreground text-base text-center font-semibold mt-1">
+              {email}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Field */}
+            {/* OTP Field */}
             <div className="space-y-2">
               <label 
-                htmlFor="email" 
+                htmlFor="otp" 
                 className="block text-sm font-semibold text-foreground"
               >
-                Email Address
+                Verification Code
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <Mail className={cn(
+                  <Shield className={cn(
                     "h-5 w-5 transition-colors duration-200",
-                    errors.email ? "text-destructive" : "text-muted-foreground"
+                    errors.otp ? "text-destructive" : "text-muted-foreground"
                   )} />
                 </div>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  id="otp"
+                  name="otp"
+                  value={formData.otp}
                   onChange={handleChange}
                   onBlur={handleBlur}
+                  maxLength={6}
                   className={cn(
                     "w-full h-12 pl-11 pr-4 rounded-lg border bg-background text-foreground",
                     "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
                     "transition-all duration-200 placeholder:text-muted-foreground/60",
-                    errors.email 
+                    "text-center text-2xl font-mono tracking-widest",
+                    errors.otp 
                       ? "border-destructive focus:ring-destructive/50 focus:border-destructive" 
                       : "border-input hover:border-primary/30"
                   )}
-                  placeholder="name@example.com"
+                  placeholder="000000"
                 />
               </div>
-              {errors.email && (
+              {errors.otp && (
                 <p className="text-sm text-destructive flex items-center gap-1 mt-1">
                   <span className="text-xs">•</span>
-                  {errors.email}
+                  {errors.otp}
                 </p>
               )}
             </div>
@@ -142,7 +164,7 @@ const SendOTP = () => {
             <Button
               type="primary"
               size="large"
-              text={isSubmitting ? "Sending OTP..." : "Send OTP"}
+              text={isSubmitting ? "Verifying..." : "Verify OTP"}
               disabled={isSubmitting}
               htmlType="submit"
               className={cn(
@@ -154,12 +176,25 @@ const SendOTP = () => {
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Sending OTP...
+                  Verifying...
                 </span>
               ) : (
-                "Send OTP"
+                "Verify OTP"
               )}
             </Button>
+
+            {/* Resend OTP Link */}
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Didn't receive the code?{" "}
+                <Link
+                  to={`/send-otp?email=${encodeURIComponent(email)}`}
+                  className="font-semibold text-primary hover:text-primary/80 transition-colors duration-200 hover:underline underline-offset-2"
+                >
+                  Resend OTP
+                </Link>
+              </p>
+            </div>
 
             {/* Divider */}
             <div className="relative my-6">
@@ -171,14 +206,14 @@ const SendOTP = () => {
               </div>
             </div>
 
-            {/* Sign In Link */}
+            {/* Back to Send OTP Link */}
             <div className="text-center">
               <Link
-                to="/login"
+                to={`/send-otp?email=${encodeURIComponent(email)}`}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors duration-200 hover:underline underline-offset-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Sign in
+                Back to Send OTP
               </Link>
             </div>
           </form>
@@ -188,5 +223,5 @@ const SendOTP = () => {
   )
 }
 
-export default SendOTP
+export default VerifyOTP
 

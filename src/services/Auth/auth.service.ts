@@ -112,6 +112,22 @@ export class AuthService {
     }
   }
 
+  // ✅ VERIFY OTP
+  async verifyOTP(payload: {
+    email: string;
+    otp: string;
+  }) {
+    try {
+      const response = await this.api.post(
+        "/auth/verify-otp",
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   // 🚪 LOGOUT (NO API CALL)
   async logout() {
     try {

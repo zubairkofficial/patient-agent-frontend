@@ -3,6 +3,7 @@ import Layout from '@/components/layout/Layout/Layout'
 import Login from '@/pages/Login/Login'
 import Register from '@/pages/signup/Register'
 import SendOTP from '@/pages/send-otp/SendOTP'
+import VerifyOTP from '@/pages/verify-otp/VerifyOTP'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Register />} />
         <Route path="/send-otp" element={<SendOTP />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/" element={<Layout />}>
           <Route index element={
             <div className="m-[2vw]">

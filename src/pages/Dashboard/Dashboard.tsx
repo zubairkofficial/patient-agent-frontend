@@ -74,7 +74,7 @@ const Dashboard = () => {
 
   return (
     <div className="w-full min-h-screen bg-background p-4 sm:p-6 md:p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Dashboard</h1>
@@ -82,7 +82,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Total Patients Card */}
           <Card
             icon={Users}
@@ -173,7 +173,7 @@ const Dashboard = () => {
         </div>
 
         {/* Secondary Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* Total Documents Card */}
           <Card
             icon={FileText}
@@ -261,7 +261,7 @@ const Dashboard = () => {
         {/* Quick Actions Section */}
         <div className="mt-6 sm:mt-8">
           <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card
               title="New Patient"
               description="Register a new patient"
@@ -287,7 +287,7 @@ const Dashboard = () => {
             <Card
               title="View Reports"
               description="Access patient reports"
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full sm:col-span-2 lg:col-span-1"
+              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full"
             >
               <div className="text-center py-4">
                 <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-3" />

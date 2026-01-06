@@ -8,6 +8,7 @@ import VerifyOTP from '@/pages/VerifyOTP/VerifyOTP'
 import SendOTP from '@/pages/SendOTP/SendOTP'
 import VerifyOTPPassword from '@/pages/VerifyOTPPassword/VerifyOTPPassword'
 import ChangePassword from '@/pages/ChangePassword/ChangePassword'
+import Dashboard from '@/pages/Dashboard/Dashboard'
 
 function AppRoutes() {
   const location = useLocation()
@@ -47,12 +48,7 @@ function AppRoutes() {
       {isAuthenticated ? (
         <>
           <Route path="/" element={<Layout />}>
-            <Route index element={
-              <div className="m-[2vw]">
-                <h1 className="text-2xl font-bold">Welcome</h1>
-                <p className="text-muted-foreground mt-2">Your content goes here</p>
-              </div>
-            } />
+            <Route index element={<Dashboard />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </>

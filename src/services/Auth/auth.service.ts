@@ -14,51 +14,95 @@ export class AuthService {
     });
   }
 
+  async register(payload: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/register", payload);
+      const { data } = response.data;
+      const { user } = data || {};
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   async login(payload: {
     email: string;
     password: string;
   }) {
     try {
       const response = await this.api.post("/auth/login", payload);
-
       const { data } = response.data;
       const { accessToken } = data || {};
-
       if (accessToken) {
         localStorage.setItem("accessToken", accessToken);
       }
-
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  // 🔁 FORGOT PASSWORD
+  async sendOTP(payload: {
+    email: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/send-otp", payload);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async verifyOTP(payload: {
+    email: string;
+    otp: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/verify-otp", payload);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   async forgotPassword(payload: {
     email: string;
   }) {
     try {
-      const response = await this.api.post(
-        "/auth/forgot-password",
-        payload
-      );
+      const response = await this.api.post("/auth/forgot-password", payload);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  // ✅ VERIFY EMAIL
   async verifyEmail(payload: {
     email: string;
-    code: string;
+    otp: string;
   }) {
     try {
-      const response = await this.api.post(
-        "/auth/verify-email",
-        payload
-      );
+      const response = await this.api.post("/auth/verify-email", payload);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async changePassword(payload: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }) {
+    try {
+      const response = await this.api.post("/auth/change-password", payload);
       return response.data;
     } catch (error) {
       throw this.handleError(error);

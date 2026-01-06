@@ -73,16 +73,16 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-background p-6 md:p-8">
+    <div className="w-full min-h-screen bg-background p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's what's happening with your patients today.</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Welcome back! Here's what's happening with your patients today.</p>
         </div>
 
         {/* Stats Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Total Patients Card */}
           <Card
             icon={Users}
@@ -103,14 +103,14 @@ const Dashboard = () => {
                 {Math.abs(stats.growthRate)}%
               </span>
             }
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : formatNumber(stats.totalPatients)}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
               {stats.activePatients} active this month
             </p>
           </Card>
@@ -120,15 +120,15 @@ const Dashboard = () => {
             icon={Activity}
             title="Active Patients"
             description="Currently active"
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : formatNumber(stats.activePatients)}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {((stats.activePatients / stats.totalPatients) * 100).toFixed(1)}% of total
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+              {stats.totalPatients > 0 ? `${((stats.activePatients / stats.totalPatients) * 100).toFixed(1)}% of total` : "0% of total"}
             </p>
           </Card>
 
@@ -142,14 +142,14 @@ const Dashboard = () => {
                 {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             }
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : stats.appointmentsToday}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
               {stats.pendingAppointments} pending
             </p>
           </Card>
@@ -159,34 +159,34 @@ const Dashboard = () => {
             icon={Clock}
             title="Pending"
             description="Awaiting confirmation"
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : stats.pendingAppointments}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
               Require attention
             </p>
           </Card>
         </div>
 
         {/* Secondary Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Total Documents Card */}
           <Card
             icon={FileText}
             title="Documents"
             description="Total documents stored"
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : formatNumber(stats.totalDocuments)}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
               Medical records & files
             </p>
           </Card>
@@ -196,14 +196,14 @@ const Dashboard = () => {
             icon={MessageSquare}
             title="Messages"
             description="Recent conversations"
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : stats.recentMessages}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
               Unread messages
             </p>
           </Card>
@@ -213,14 +213,14 @@ const Dashboard = () => {
             icon={CheckCircle2}
             title="Completed"
             description="Tasks finished this week"
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : stats.completedTasks}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
               Great progress!
             </p>
           </Card>
@@ -245,53 +245,53 @@ const Dashboard = () => {
                 {Math.abs(stats.growthRate)}%
               </span>
             }
-            className="hover:shadow-lg transition-shadow duration-200"
+            className="hover:shadow-lg transition-shadow duration-200 w-full"
           >
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground">
                 {isLoading ? "..." : `${stats.growthRate}%`}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
               Compared to last month
             </p>
           </Card>
         </div>
 
         {/* Quick Actions Section */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-6 sm:mt-8">
+          <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card
               title="New Patient"
               description="Register a new patient"
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary"
+              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full"
             >
               <div className="text-center py-4">
-                <Users className="h-12 w-12 text-primary mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Add new patient record</p>
+                <Users className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-3" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Add new patient record</p>
               </div>
             </Card>
 
             <Card
               title="Schedule Appointment"
               description="Book a new appointment"
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary"
+              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full"
             >
               <div className="text-center py-4">
-                <Calendar className="h-12 w-12 text-primary mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Create new appointment</p>
+                <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-3" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Create new appointment</p>
               </div>
             </Card>
 
             <Card
               title="View Reports"
               description="Access patient reports"
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary"
+              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full sm:col-span-2 lg:col-span-1"
             >
               <div className="text-center py-4">
-                <FileText className="h-12 w-12 text-primary mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Browse all documents</p>
+                <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-3" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Browse all documents</p>
               </div>
             </Card>
           </div>

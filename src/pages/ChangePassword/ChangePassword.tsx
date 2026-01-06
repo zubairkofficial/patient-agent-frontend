@@ -1,28 +1,36 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { Mail, Lock, Activity, Eye, EyeOff } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useNavigate, useLocation, Link } from "react-router-dom"
+import { Lock, Activity, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/Button/Button"
 import { authService } from "@/services/Auth/auth.service"
 
-const Login = () => {
+const ChangePassword = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [formData, setFormData] = useState({
-    email: "",
-    password: ""
+    newPassword: "",
+    confirmPassword: ""
   })
   const [errors, setErrors] = useState({
-    email: "",
-    password: ""
+    newPassword: "",
+    confirmPassword: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [email, setEmail] = useState("")
+  const [otp, setOtp] = useState("")
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+  useEffect(() => {
+    if (location.state?.email && location.state?.otp) {
+      setEmail(location.state.email)
+      setOtp(location.state.otp)
+    } else {
+      navigate("/forgot-password")
+    }
+  }, [location, navigate])
 
   const validatePassword = (password: string): boolean => {
     return password.length >= 6
@@ -35,7 +43,6 @@ const Login = () => {
       [name]: value
     }))
     
-    // Clear error when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
@@ -47,15 +54,15 @@ const Login = () => {
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     
-    if (name === "email" && value && !validateEmail(value)) {
+    if (name === "newPassword" && value && !validatePassword(value)) {
       setErrors(prev => ({
         ...prev,
-        email: "Please enter a valid email address"
+        newPassword: "Password must be at least 6 characters"
       }))
-    } else if (name === "password" && value && !validatePassword(value)) {
+    } else if (name === "confirmPassword" && value && formData.newPassword !== value) {
       setErrors(prev => ({
         ...prev,
-        password: "Password must be at least 6 characters"
+        confirmPassword: "Passwords do not match"
       }))
     }
   }
@@ -64,25 +71,25 @@ const Login = () => {
     e.preventDefault()
     
     const newErrors = {
-      email: "",
-      password: ""
+      newPassword: "",
+      confirmPassword: ""
     }
     
     let isValid = true
     
-    if (!formData.email) {
-      newErrors.email = "Email is required"
+    if (!formData.newPassword) {
+      newErrors.newPassword = "Password is required"
       isValid = false
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+    } else if (!validatePassword(formData.newPassword)) {
+      newErrors.newPassword = "Password must be at least 6 characters"
       isValid = false
     }
     
-    if (!formData.password) {
-      newErrors.password = "Password is required"
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password"
       isValid = false
-    } else if (!validatePassword(formData.password)) {
-      newErrors.password = "Password must be at least 6 characters"
+    } else if (formData.newPassword !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match"
       isValid = false
     }
     
@@ -95,22 +102,23 @@ const Login = () => {
     setIsSubmitting(true)
     
     try {
-      const response = await authService.login({
-        email: formData.email,
-        password: formData.password
+      const response = await authService.changePassword({
+        email: email,
+        otp: otp,
+        newPassword: formData.newPassword
       })
       
       if (response.success) {
-        toast.success("Login successful!")
-        navigate("/")
+        toast.success(response.message || "Password changed successfully!")
+        navigate("/login")
       } else {
-        toast.error(response.message || "Login failed. Please try again.")
+        toast.error(response.message || "Failed to change password. Please try again.")
         setIsSubmitting(false)
       }
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? error.message 
-        : "Login failed. Please check your credentials."
+        : "Failed to change password. Please try again."
       toast.error(errorMessage)
       setIsSubmitting(false)
     }
@@ -120,92 +128,48 @@ const Login = () => {
     <div className="flex items-center justify-center min-h-screen w-screen bg-gradient-to-br from-background via-primary/5 to-background">
       <div className="w-full max-w-lg mx-auto px-4">
         <div className="bg-card border border-border/50 rounded-2xl shadow-xl p-8 md:p-10 backdrop-blur-sm">
-          {/* Logo and Header */}
           <div className="mb-10">
             <div className="flex items-center justify-center gap-4 mb-3">
               <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <Activity className="h-6 w-6 text-primary-foreground" />
+                <Lock className="h-6 w-6 text-primary-foreground" />
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-                Welcome Back
+                Reset Password
               </h1>
             </div>
-            <p className="text-muted-foreground text-base text-center">Sign in to continue to Patient Agent</p>
+            <p className="text-muted-foreground text-base text-center">
+              Enter your new password
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Field */}
             <div className="space-y-2">
-              <label 
-                htmlFor="email" 
-                className="block text-sm font-semibold text-foreground"
-              >
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <Mail className={cn(
-                    "h-5 w-5 transition-colors duration-200",
-                    errors.email ? "text-destructive" : "text-muted-foreground"
-                  )} />
-                </div>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={cn(
-                    "w-full h-12 pl-11 pr-4 rounded-lg border bg-background text-foreground",
-                    "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
-                    "transition-all duration-200 placeholder:text-muted-foreground/60",
-                    errors.email 
-                      ? "border-destructive focus:ring-destructive/50 focus:border-destructive" 
-                      : "border-input hover:border-primary/30"
-                  )}
-                  placeholder="name@example.com"
-                />
-              </div>
-              {errors.email && (
-                <p className="text-sm text-destructive flex items-center gap-1 mt-1">
-                  <span className="text-xs">•</span>
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div className="space-y-2">
-              <label 
-                htmlFor="password" 
-                className="block text-sm font-semibold text-foreground"
-              >
-                Password
+              <label htmlFor="newPassword" className="block text-sm font-semibold text-foreground">
+                New Password
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
                   <Lock className={cn(
                     "h-5 w-5 transition-colors duration-200",
-                    errors.password ? "text-destructive" : "text-muted-foreground"
+                    errors.newPassword ? "text-destructive" : "text-muted-foreground"
                   )} />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  value={formData.password}
+                  id="newPassword"
+                  name="newPassword"
+                  value={formData.newPassword}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   className={cn(
                     "w-full h-12 pl-11 pr-12 rounded-lg border bg-background text-foreground",
                     "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
                     "transition-all duration-200 placeholder:text-muted-foreground/60",
-                    errors.password 
+                    errors.newPassword 
                       ? "border-destructive focus:ring-destructive/50 focus:border-destructive" 
                       : "border-input hover:border-primary/30"
                   )}
-                  placeholder="Enter your password"
+                  placeholder="Enter new password"
                 />
                 <button
                   type="button"
@@ -220,29 +184,67 @@ const Login = () => {
                   )}
                 </button>
               </div>
-              {errors.password && (
+              {errors.newPassword && (
                 <p className="text-sm text-destructive flex items-center gap-1 mt-1">
                   <span className="text-xs">•</span>
-                  {errors.password}
+                  {errors.newPassword}
                 </p>
               )}
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="flex justify-end pt-1">
-              <Link
-                to="/forgot-password"
-                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-200 hover:underline underline-offset-2"
-              >
-                Forgot password?
-              </Link>
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-foreground">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                  <Lock className={cn(
+                    "h-5 w-5 transition-colors duration-200",
+                    errors.confirmPassword ? "text-destructive" : "text-muted-foreground"
+                  )} />
+                </div>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={cn(
+                    "w-full h-12 pl-11 pr-12 rounded-lg border bg-background text-foreground",
+                    "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
+                    "transition-all duration-200 placeholder:text-muted-foreground/60",
+                    errors.confirmPassword 
+                      ? "border-destructive focus:ring-destructive/50 focus:border-destructive" 
+                      : "border-input hover:border-primary/30"
+                  )}
+                  placeholder="Confirm new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200 p-1"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                  <span className="text-xs">•</span>
+                  {errors.confirmPassword}
+                </p>
+              )}
             </div>
 
-            {/* Submit Button */}
             <Button
               type="primary"
               size="large"
-              text={isSubmitting ? "Signing in..." : "Sign In"}
+              text={isSubmitting ? "Resetting..." : "Reset Password"}
               disabled={isSubmitting}
               htmlType="submit"
               className={cn(
@@ -254,34 +256,21 @@ const Login = () => {
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Signing in...
+                  Resetting...
                 </span>
               ) : (
-                "Sign In"
+                "Reset Password"
               )}
             </Button>
 
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or</span>
-              </div>
-            </div>
-
-            {/* Sign Up Link */}
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Link
-                  to="/signup"
-                  className="font-semibold text-primary hover:text-primary/80 transition-colors duration-200 hover:underline underline-offset-2"
-                >
-                  Create an account
-                </Link>
-              </p>
+              <Link
+                to="/login"
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-200 hover:underline underline-offset-2 inline-flex items-center gap-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Login
+              </Link>
             </div>
           </form>
         </div>
@@ -290,4 +279,5 @@ const Login = () => {
   )
 }
 
-export default Login
+export default ChangePassword
+

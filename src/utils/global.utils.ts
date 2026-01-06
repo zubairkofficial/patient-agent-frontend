@@ -29,7 +29,7 @@ export const getBaseUrl = (): string => {
   const env = getEnv();
   
   // Default for development
-  return 'http://localhost:3000/api';
+  return 'http://localhost:3000';
 };
 
 /**

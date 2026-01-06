@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Mail, Lock, Activity, Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/Button/Button"
+import { authService } from "@/services/Auth/auth.service"
 
 const Login = () => {
   const navigate = useNavigate()
@@ -58,10 +60,9 @@ const Login = () => {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    // Validate all fields
     const newErrors = {
       email: "",
       password: ""
@@ -87,14 +88,31 @@ const Login = () => {
     
     setErrors(newErrors)
     
-    if (isValid) {
-      setIsSubmitting(true)
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false)
-        // Navigate to dashboard/home after successful login
+    if (!isValid) {
+      return
+    }
+    
+    setIsSubmitting(true)
+    
+    try {
+      const response = await authService.login({
+        email: formData.email,
+        password: formData.password
+      })
+      
+      if (response.success) {
+        toast.success("Login successful!")
         navigate("/")
-      }, 1000)
+      } else {
+        toast.error(response.message || "Login failed. Please try again.")
+        setIsSubmitting(false)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Login failed. Please check your credentials."
+      toast.error(errorMessage)
+      setIsSubmitting(false)
     }
   }
 

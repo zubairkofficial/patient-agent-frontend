@@ -129,3 +129,5 @@ export class AuthService {
     return new Error("An unexpected error occurred");
   }
 }
+
+export const authService = new AuthService();

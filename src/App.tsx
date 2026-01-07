@@ -9,6 +9,8 @@ import SendOTP from '@/pages/SendOTP/SendOTP'
 import VerifyOTPPassword from '@/pages/VerifyOTPPassword/VerifyOTPPassword'
 import ChangePassword from '@/pages/ChangePassword/ChangePassword'
 import Dashboard from '@/pages/Dashboard/Dashboard'
+import ClusterFocus from '@/pages/ClusterFocus/ClusterFocus'
+import Chat from '@/pages/Chat/Chat'
 
 function AppRoutes() {
   const location = useLocation()
@@ -50,6 +52,8 @@ function AppRoutes() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
           </Route>
+          <Route path="/cluster/:clusterId" element={<ClusterFocus />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>
       ) : (

@@ -1,300 +1,125 @@
-import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/Card/Card"
-import { 
-  Users, 
-  Activity, 
-  Calendar, 
-  TrendingUp, 
-  Clock,
-  FileText,
-  MessageSquare,
-  CheckCircle2,
-  ArrowUpRight,
-  ArrowDownRight
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useNavigate } from "react-router-dom"
+import { Calendar, ChevronRight } from "lucide-react"
 
-interface DashboardStats {
-  totalPatients: number
-  activePatients: number
-  appointmentsToday: number
-  pendingAppointments: number
-  totalDocuments: number
-  recentMessages: number
-  completedTasks: number
-  growthRate: number
+type ClusterStatus = "in-progress" | "completed" | "upcoming"
+
+interface Cluster {
+  id: string
+  name: string
+  description: string
+  status: ClusterStatus
+  progress: number
+}
+
+const clusters: Cluster[] = [
+  {
+    id: "gad",
+    name: "GAD (Generalized Anxiety Disorder)",
+    description:
+      "Weekly focus on managing daily worries, tracking triggers, and practicing coping strategies.",
+    status: "in-progress",
+    progress: 65,
+  },
+  {
+    id: "sleep-hygiene",
+    name: "Sleep Hygiene",
+    description:
+      "Strengthen your bedtime routine, adjust your environment, and review your weekly sleep trends.",
+    status: "completed",
+    progress: 100,
+  },
+  {
+    id: "mindfulness-basics",
+    name: "Mindfulness Basics",
+    description:
+      "Learn simple meditation and grounding techniques to build a calm daily check-in habit.",
+    status: "upcoming",
+    progress: 0,
+  },
+]
+
+const getStatusChip = (status: ClusterStatus) => {
+  switch (status) {
+    case "in-progress":
+      return (
+        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+          In Progress
+        </span>
+      )
+    case "completed":
+      return (
+        <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
+          Completed
+        </span>
+      )
+    case "upcoming":
+      return (
+        <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+          Upcoming
+        </span>
+      )
+  }
 }
 
 const Dashboard = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalPatients: 0,
-    activePatients: 0,
-    appointmentsToday: 0,
-    pendingAppointments: 0,
-    totalDocuments: 0,
-    recentMessages: 0,
-    completedTasks: 0,
-    growthRate: 0
-  })
-  const [isLoading, setIsLoading] = useState(true)
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    // Simulate API call to fetch dashboard stats
-    const fetchStats = async () => {
-      setIsLoading(true)
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Mock data - replace with actual API call
-      setStats({
-        totalPatients: 1248,
-        activePatients: 856,
-        appointmentsToday: 23,
-        pendingAppointments: 12,
-        totalDocuments: 3421,
-        recentMessages: 48,
-        completedTasks: 156,
-        growthRate: 12.5
-      })
-      
-      setIsLoading(false)
-    }
-
-    fetchStats()
-  }, [])
-
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('en-US').format(num)
-  }
-
-  const getPercentageChange = (current: number, previous: number) => {
-    if (previous === 0) return 0
-    return ((current - previous) / previous) * 100
+  const handleClusterClick = (clusterId: string) => {
+    navigate(`/cluster/${clusterId}`)
   }
 
   return (
-    <div className="w-full min-h-screen bg-background p-4 sm:p-6 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Dashboard</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Welcome back! Here's what's happening with your patients today.</p>
+    <div className="w-full min-h-screen bg-background px-4 sm:px-8 pt-8 pb-10">
+      <div className="max-w-8xl mx-auto">
+        {/* Top heading & icon */}
+        
+
+        {/* Weekly clusters heading */}
+        <div className="flex items-center gap-2 mb-4">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Calendar className="h-4 w-4" />
+          </span>
+          <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
+            Weekly Clusters
+          </h2>
         </div>
 
-        {/* Stats Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {/* Total Patients Card */}
-          <Card
-            icon={Users}
-            title="Total Patients"
-            description="All registered patients"
-            headerRight={
-              <span className={cn(
-                "text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1",
-                stats.growthRate > 0 
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
-              )}>
-                {stats.growthRate > 0 ? (
-                  <ArrowUpRight className="h-3 w-3" />
-                ) : (
-                  <ArrowDownRight className="h-3 w-3" />
-                )}
-                {Math.abs(stats.growthRate)}%
-              </span>
-            }
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : formatNumber(stats.totalPatients)}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              {stats.activePatients} active this month
-            </p>
-          </Card>
-
-          {/* Active Patients Card */}
-          <Card
-            icon={Activity}
-            title="Active Patients"
-            description="Currently active"
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : formatNumber(stats.activePatients)}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              {stats.totalPatients > 0 ? `${((stats.activePatients / stats.totalPatients) * 100).toFixed(1)}% of total` : "0% of total"}
-            </p>
-          </Card>
-
-          {/* Appointments Today Card */}
-          <Card
-            icon={Calendar}
-            title="Appointments Today"
-            description="Scheduled for today"
-            headerRight={
-              <span className="text-xs text-muted-foreground">
-                {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </span>
-            }
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : stats.appointmentsToday}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              {stats.pendingAppointments} pending
-            </p>
-          </Card>
-
-          {/* Pending Appointments Card */}
-          <Card
-            icon={Clock}
-            title="Pending"
-            description="Awaiting confirmation"
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : stats.pendingAppointments}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              Require attention
-            </p>
-          </Card>
-        </div>
-
-        {/* Secondary Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          {/* Total Documents Card */}
-          <Card
-            icon={FileText}
-            title="Documents"
-            description="Total documents stored"
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : formatNumber(stats.totalDocuments)}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              Medical records & files
-            </p>
-          </Card>
-
-          {/* Recent Messages Card */}
-          <Card
-            icon={MessageSquare}
-            title="Messages"
-            description="Recent conversations"
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : stats.recentMessages}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              Unread messages
-            </p>
-          </Card>
-
-          {/* Completed Tasks Card */}
-          <Card
-            icon={CheckCircle2}
-            title="Completed"
-            description="Tasks finished this week"
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : stats.completedTasks}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              Great progress!
-            </p>
-          </Card>
-
-          {/* Growth Rate Card */}
-          <Card
-            icon={TrendingUp}
-            title="Growth Rate"
-            description="Patient growth this month"
-            headerRight={
-              <span className={cn(
-                "text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1",
-                stats.growthRate > 0 
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
-              )}>
-                {stats.growthRate > 0 ? (
-                  <ArrowUpRight className="h-3 w-3" />
-                ) : (
-                  <ArrowDownRight className="h-3 w-3" />
-                )}
-                {Math.abs(stats.growthRate)}%
-              </span>
-            }
-            className="hover:shadow-lg transition-shadow duration-200 w-full"
-          >
-            <div className="flex items-end gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                {isLoading ? "..." : `${stats.growthRate}%`}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              Compared to last month
-            </p>
-          </Card>
-        </div>
-
-        {/* Quick Actions Section */}
-        <div className="mt-6 sm:mt-8">
-          <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card
-              title="New Patient"
-              description="Register a new patient"
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full"
+        {/* Cluster cards */}
+        <div className="grid gap-4">
+          {clusters.map((cluster) => (
+            <button
+              key={cluster.id}
+              onClick={() => handleClusterClick(cluster.id)}
+              className="w-full text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-3xl"
             >
-              <div className="text-center py-4">
-                <Users className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-3" />
-                <p className="text-xs sm:text-sm text-muted-foreground">Add new patient record</p>
+              <div className="w-full rounded-3xl border border-border/40 bg-card/60 backdrop-blur shadow-sm cursor-pointer hover:shadow-md transition-all">
+                <div className="px-6 py-7 pb-8 flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3 mb-1">
+                      <h3 className="font-semibold text-base sm:text-lg text-foreground">
+                        {cluster.name}
+                      </h3>
+                      {getStatusChip(cluster.status)}
+                    </div>
+                    <p className="text-muted-foreground text-sm max-w-2xl">
+                      {cluster.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right hidden sm:block">
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Progress
+                      </div>
+                      <div className="text-lg font-bold text-foreground">
+                        {cluster.progress}%
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
               </div>
-            </Card>
-
-            <Card
-              title="Schedule Appointment"
-              description="Book a new appointment"
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full"
-            >
-              <div className="text-center py-4">
-                <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-3" />
-                <p className="text-xs sm:text-sm text-muted-foreground">Create new appointment</p>
-              </div>
-            </Card>
-
-            <Card
-              title="View Reports"
-              description="Access patient reports"
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary w-full"
-            >
-              <div className="text-center py-4">
-                <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-3" />
-                <p className="text-xs sm:text-sm text-muted-foreground">Browse all documents</p>
-              </div>
-            </Card>
-          </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>

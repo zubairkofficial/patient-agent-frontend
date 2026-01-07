@@ -1,7 +1,8 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import Message from "@/components/Message/Message"
-import { Button } from "@/components/ui/Button/Button"
-import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/Input/Input"
+import { Activity, ArrowLeft, Send, Bot } from "lucide-react"
 
 type ChatMessage = {
   id: string
@@ -11,11 +12,14 @@ type ChatMessage = {
 }
 
 const Chat = () => {
+  const navigate = useNavigate()
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
       isBot: true,
-      message: "Hello! 👋\n\nI'm your **Patient Agent** assistant. How can I help you today?",
+      message:
+        "Hi there! I'm your wellness guide. How are you feeling about your weekly goals today?",
     },
   ])
   const [input, setInput] = useState("")
@@ -35,82 +39,110 @@ const Chat = () => {
     setInput("")
     setIsSending(true)
 
-    // Simulate bot reply – replace with real API call
+    // Simulated bot reply – replace with API call later.
     setTimeout(() => {
       const botMessage: ChatMessage = {
         id: `${Date.now()}-bot`,
         isBot: true,
-        message: `You said:\n\n> ${trimmed}\n\nThis is a **demo** response. Hook this up to your backend/LLM to make it smart.`,
+        message:
+          "Thanks for sharing. Let's take this one step at a time and focus on what you can control this week.",
       }
       setMessages((prev) => [...prev, botMessage])
       setIsSending(false)
-    }, 600)
+    }, 700)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
       e.preventDefault()
       handleSend()
     }
   }
 
   return (
-    <div className="flex h-[calc(100vh-70px)] w-full max-w-5xl mx-auto py-4 px-4 md:px-6">
-      <div className="flex flex-col w-full rounded-2xl border bg-card shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b bg-muted/60">
-          <div>
-            <h2 className="text-base md:text-lg font-semibold text-foreground">
-              Patient Agent Chat
-            </h2>
-            <p className="text-xs md:text-sm text-muted-foreground">
-              Ask questions, summarize records, or get patient insights.
-            </p>
-          </div>
-          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            Assistant online
+    <div className="fixed inset-0 w-full bg-background flex flex-col">
+      {/* Header */}
+      <header className="w-full border-b bg-background">
+        <div className="max-w-8xl mx-auto h-[64px] px-4 flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-card text-foreground shadow-sm hover:bg-muted transition-colors"
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center shadow-md">
+              <Activity className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">
+                Wellness Guide
+              </h1>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-3 md:px-4 py-3 md:py-4 space-y-1 bg-background">
-          {messages.map((m) => (
-            <Message
-              key={m.id}
-              isBot={m.isBot}
-              message={m.message}
-              avatarUrl={m.avatarUrl}
-            />
-          ))}
-        </div>
+      {/* Body */}
+      <main className="flex-1 w-full overflow-hidden">
+        <div className="max-w-8xl mx-auto h-full flex flex-col">
+          {/* Messages */}
+            <div className="flex-1 px-4 pt-6 pb-4 overflow-y-auto flex flex-col items-start">
+              <div className="w-full flex justify-start mb-6 pl-2 sm:pl-4">
+                {messages.length > 0 && (
+                  <div className="max-w-3xl w-full flex flex-col items-start">
+                    {/* Welcome bot message with icon */}
+                    <div className="w-full flex justify-start">
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center shadow-md">
+                          <Bot className="h-5 w-5 text-primary-foreground" />
+                        </div>
+                        <div className="rounded-2xl bg-muted px-8 py-6 shadow-sm text-base text-foreground">
+                          {messages[0].message}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-        {/* Input area */}
-        <div className="border-t bg-card/80 backdrop-blur px-3 md:px-4 py-3">
-          <div className="flex items-end gap-2 md:gap-3">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={1}
-              className={cn(
-                "flex-1 resize-none rounded-lg border bg-background px-3 py-2 text-sm",
-                "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
-                "placeholder:text-muted-foreground/70"
-              )}
-              placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
-            />
-            <Button
-              type="primary"
-              size="large"
-              text={isSending ? "Sending..." : "Send"}
-              disabled={isSending || !input.trim()}
-              onClick={handleSend}
-              className="whitespace-nowrap"
-            />
+            {/* Remaining messages in regular chat layout */}
+            <div className="w-full space-y-2 px-4">
+              {messages.slice(1).map((m) => (
+                <Message
+                  key={m.id}
+                  isBot={m.isBot}
+                  message={m.message}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Input */}
+          <div className="border-t bg-background py-4 px-4">
+            <div className="max-w-6xl mx-auto flex items-center gap-3">
+              <Input
+                placeholder="Type your message..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isSending}
+                className="bg-muted/60"
+              />
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={isSending || !input.trim()}
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+                aria-label="Send message"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

@@ -1,19 +1,13 @@
 import React from "react"
 import ReactMarkdown from "react-markdown"
+import { Bot, User } from "lucide-react"
 
 type MessageProps = {
   isBot: boolean
   message: string
-  avatarUrl?: string
 }
 
-const Message: React.FC<MessageProps> = ({ isBot, message, avatarUrl }) => {
-  const defaultUserAvatar =
-    "https://api.dicebear.com/9.x/adventurer/svg?seed=user"
-  const defaultBotAvatar =
-    "https://api.dicebear.com/9.x/bottts/svg?seed=bot"
-
-  const finalAvatar = avatarUrl || (isBot ? defaultBotAvatar : defaultUserAvatar)
+const Message: React.FC<MessageProps> = ({ isBot, message }) => {
 
   return (
     <div
@@ -22,11 +16,9 @@ const Message: React.FC<MessageProps> = ({ isBot, message, avatarUrl }) => {
       }`}
     >
       {isBot && (
-        <img
-          src={finalAvatar}
-          alt={isBot ? "Bot avatar" : "User avatar"}
-          className="h-9 w-9 rounded-full border bg-background object-cover"
-        />
+        <div className="h-9 w-9 rounded-full border bg-background flex items-center justify-center">
+          <Bot className="h-5 w-5 text-primary" />
+        </div>
       )}
 
       <div
@@ -36,19 +28,15 @@ const Message: React.FC<MessageProps> = ({ isBot, message, avatarUrl }) => {
             : "bg-primary text-primary-foreground border-primary/70"
         }`}
       >
-        <ReactMarkdown
-          className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-pre:my-2 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-md prose-code:bg-black/10 dark:prose-code:bg-white/10"
-        >
+        <ReactMarkdown>
           {message}
         </ReactMarkdown>
       </div>
 
       {!isBot && (
-        <img
-          src={finalAvatar}
-          alt={isBot ? "Bot avatar" : "User avatar"}
-          className="h-9 w-9 rounded-full border bg-background object-cover"
-        />
+        <div className="h-9 w-9 rounded-full border bg-background flex items-center justify-center">
+          <User className="h-5 w-5 text-primary" />
+        </div>
       )}
     </div>
   )

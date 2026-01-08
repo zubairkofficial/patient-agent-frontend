@@ -1,34 +1,83 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Toaster } from 'sonner'
+import Layout from '@/components/layout/Layout/Layout'
+import Login from '@/pages/Login/Login'
+import Register from '@/pages/Register/Register'
+import VerifyOTP from '@/pages/VerifyOTP/VerifyOTP'
+import SendOTP from '@/pages/SendOTP/SendOTP'
+import VerifyOTPPassword from '@/pages/VerifyOTPPassword/VerifyOTPPassword'
+import ChangePassword from '@/pages/ChangePassword/ChangePassword'
+import Dashboard from '@/pages/Users/Dashboard/Dashboard'
+import ClusterFocus from '@/pages/Users/Cluster/Cluster'
+import Chat from '@/pages/Users/Chats/Chat'
 
-function App() {
-  const [count, setCount] = useState(0)
+function AppRoutes() {
+  const location = useLocation()
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = localStorage.getItem("accessToken")
+    return !!token
+  })
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("accessToken")
+      setIsAuthenticated(!!token)
+    }
+
+    checkAuth()
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "accessToken") {
+        checkAuth()
+      }
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken")
+    setIsAuthenticated(!!token)
+  }, [location.pathname])
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Routes>
+      {isAuthenticated ? (
+        <>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+          </Route>
+          <Route path="/cluster/:clusterId" element={<ClusterFocus />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </>
+      ) : (
+        <>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/signup" element={<Register />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/forgot-password" element={<SendOTP />} />
+          <Route path="/verify-otp-password" element={<VerifyOTPPassword />} />
+          <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </>
+      )}
+    </Routes>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Toaster position="top-right" richColors />
+      <AppRoutes />
+    </BrowserRouter>
   )
 }
 

@@ -11,7 +11,7 @@ const Header = () => {
   };
 
   return (
-    <div id="header-div" className="flex w-full h-[70px]">
+    <div id="header-div" className="flex w-full h-[70px] border-b border-border">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center ml-[2vw]">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md mr-3">

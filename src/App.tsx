@@ -9,7 +9,7 @@ import SendOTP from '@/pages/SendOTP/SendOTP'
 import VerifyOTPPassword from '@/pages/VerifyOTPPassword/VerifyOTPPassword'
 import ChangePassword from '@/pages/ChangePassword/ChangePassword'
 import Dashboard from '@/pages/Users/Dashboard/Dashboard'
-import ClusterFocus from '@/pages/Users/ClusterFocus/ClusterFocus'
+import ClusterFocus from '@/pages/Users/Cluster/Cluster'
 import Chat from '@/pages/Users/Chats/Chat'
 
 function AppRoutes() {

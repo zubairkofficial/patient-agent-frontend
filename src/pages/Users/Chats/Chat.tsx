@@ -3,13 +3,7 @@ import { useNavigate } from "react-router-dom"
 import Message from "@/components/Message/Message"
 import { Input } from "@/components/ui/Input/Input"
 import { Activity, ArrowLeft, Send, Bot } from "lucide-react"
-
-type ChatMessage = {
-  id: string
-  isBot: boolean
-  message: string
-  avatarUrl?: string
-}
+import type { ChatMessage } from "@/types/Message.types"
 
 const Chat = () => {
   const navigate = useNavigate()

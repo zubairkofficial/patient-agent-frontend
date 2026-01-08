@@ -1,15 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { Calendar, ChevronRight } from "lucide-react"
-
-type ClusterStatus = "in-progress" | "completed" | "upcoming"
-
-interface Cluster {
-  id: string
-  name: string
-  description: string
-  status: ClusterStatus
-  progress: number
-}
+import type { ClusterStatus, Cluster } from "@/types/Dashboard.types"
 
 const clusters: Cluster[] = [
   {

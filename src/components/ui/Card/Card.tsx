@@ -1,16 +1,6 @@
 import * as React from "react"
-import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-type CardProps = React.PropsWithChildren<{
-  icon?: LucideIcon
-  title?: React.ReactNode
-  description?: React.ReactNode
-  content?: React.ReactNode
-  footer?: React.ReactNode
-  headerRight?: React.ReactNode
-  className?: string
-}>
+import type { CardProps } from "@/types/Card.types"
 
 const Card: React.FC<CardProps> = ({
   icon: Icon,

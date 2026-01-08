@@ -1,11 +1,7 @@
 import React from "react"
 import ReactMarkdown from "react-markdown"
 import { Bot, User } from "lucide-react"
-
-type MessageProps = {
-  isBot: boolean
-  message: string
-}
+import type { MessageProps } from "@/types/Message.types"
 
 const Message: React.FC<MessageProps> = ({ isBot, message }) => {
 

@@ -1,16 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-
-interface ButtonProps {
-  type?: "primary" | "secondary"
-  size?: "full" | "large" | "medium"
-  text: string
-  onClick?: () => void
-  className?: string
-  disabled?: boolean
-  htmlType?: "button" | "submit" | "reset"
-  children?: React.ReactNode
-}
+import type { ButtonProps } from "@/types/Button.types"
 
 const Button: React.FC<ButtonProps> = ({
   type = "primary",

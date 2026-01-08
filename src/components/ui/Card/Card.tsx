@@ -1,15 +1,6 @@
 import * as React from "react"
-import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-interface CardProps {
-  icon: LucideIcon
-  title?: string
-  description?: string
-  content?: React.ReactNode
-  footer?: React.ReactNode
-  className?: string
-}
+import type { CardProps } from "@/types/Card.types"
 
 const Card: React.FC<CardProps> = ({
   icon: Icon,
@@ -17,40 +8,44 @@ const Card: React.FC<CardProps> = ({
   description,
   content,
   footer,
-  className
+  headerRight,
+  className,
+  children,
 }) => {
+  const body = content ?? children
+
   return (
     <div
       className={cn(
-        "w-[300px] h-[200px] rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col",
+        "w-full min-h-[180px] sm:min-h-[200px] rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col",
+        "animate-fade-in-up hover:shadow-md transition-all duration-300 hover:scale-[1.02]",
         className
       )}
     >
-      <div className="flex flex-col m-6 flex-1">
-        <div className="flex items-center mb-4">
-          <Icon className="h-6 w-6 mr-3 text-primary" />
-          {title && (
-            <h3 className="text-xl font-semibold leading-none tracking-tight">
-              {title}
-            </h3>
-          )}
-        </div>
-        
-        {description && (
-          <p className="text-sm text-muted-foreground mb-4">
-            {description}
-          </p>
-        )}
-        
-        {content && (
-          <div className="flex-1">
-            {content}
+      {(Icon || title || headerRight) && (
+        <div className="flex items-center justify-between gap-2 sm:gap-3 px-4 sm:px-6 pt-4 sm:pt-5 pb-2 sm:pb-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            {Icon && <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />}
+            {title && (
+              <h3 className="text-lg sm:text-xl font-semibold leading-none tracking-tight truncate">
+                {title}
+              </h3>
+            )}
           </div>
-        )}
-      </div>
-      
+          {headerRight && <div className="shrink-0">{headerRight}</div>}
+        </div>
+      )}
+
+      {description && (
+        <p className="px-4 sm:px-6 text-xs sm:text-sm text-muted-foreground">
+          {description}
+        </p>
+      )}
+
+      {body && <div className="flex-1 px-4 sm:px-6 py-3 sm:py-4">{body}</div>}
+
       {footer && (
-        <div className="flex items-center m-6 mt-0 pt-4 border-t">
+        <div className="flex items-center px-4 sm:px-6 py-3 sm:py-4 mt-auto border-t">
           {footer}
         </div>
       )}

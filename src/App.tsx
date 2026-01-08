@@ -8,9 +8,9 @@ import VerifyOTP from '@/pages/VerifyOTP/VerifyOTP'
 import SendOTP from '@/pages/SendOTP/SendOTP'
 import VerifyOTPPassword from '@/pages/VerifyOTPPassword/VerifyOTPPassword'
 import ChangePassword from '@/pages/ChangePassword/ChangePassword'
-import Dashboard from '@/pages/Dashboard/Dashboard'
-import ClusterFocus from '@/pages/ClusterFocus/ClusterFocus'
-import Chat from '@/pages/Chat/Chat'
+import Dashboard from '@/pages/Users/Dashboard/Dashboard'
+import ClusterFocus from '@/pages/Users/ClusterFocus/ClusterFocus'
+import Chat from '@/pages/Users/Chats/Chat'
 
 function AppRoutes() {
   const location = useLocation()

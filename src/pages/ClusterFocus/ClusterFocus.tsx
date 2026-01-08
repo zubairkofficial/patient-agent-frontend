@@ -84,13 +84,14 @@ const ClusterFocus = () => {
 
         {/* Activity cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {activities.map((activity) => (
+          {activities.map((activity, index) => (
             <button
               key={activity.id}
               onClick={() => handleActivityClick(activity.id)}
-              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl"
+              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl cursor-pointer animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.1}s`, opacity: 0 }}
             >
-              <div className="w-full rounded-3xl border border-border/60 bg-card shadow-sm px-6 py-5 flex flex-col items-start gap-4 hover:shadow-md transition-all duration-300 group-active:scale-[0.99]">
+              <div className="w-full rounded-3xl border border-border/60 bg-card shadow-sm px-6 py-5 flex flex-col items-start gap-4 hover:shadow-md transition-all duration-300 group-active:scale-[0.99] hover:scale-[1.02]">
                 <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${activity.iconBg}`}>
                   <activity.icon className={`h-7 w-7 ${activity.iconColor}`} />
                 </div>

@@ -28,6 +28,7 @@ const Card: React.FC<CardProps> = ({
     <div
       className={cn(
         "w-full min-h-[180px] sm:min-h-[200px] rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col",
+        "animate-fade-in-up hover:shadow-md transition-all duration-300 hover:scale-[1.02]",
         className
       )}
     >

@@ -86,13 +86,14 @@ const Dashboard = () => {
 
         {/* Cluster cards */}
         <div className="grid gap-4">
-          {clusters.map((cluster) => (
+          {clusters.map((cluster, index) => (
             <button
               key={cluster.id}
               onClick={() => handleClusterClick(cluster.id)}
-              className="w-full text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-3xl"
+              className="w-full text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-3xl animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.1}s`, opacity: 0 }}
             >
-              <div className="w-full rounded-3xl border border-border/40 bg-card/60 backdrop-blur shadow-sm cursor-pointer hover:shadow-md transition-all">
+              <div className="w-full rounded-3xl border border-border/40 bg-card/60 backdrop-blur shadow-sm cursor-pointer hover:shadow-md transition-all duration-300 hover:scale-[1.01]">
                 <div className="px-6 py-7 pb-8 flex items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3 mb-1">

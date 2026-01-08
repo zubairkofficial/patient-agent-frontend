@@ -119,7 +119,7 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen w-screen bg-gradient-to-br from-background via-primary/5 to-background">
       <div className="w-full max-w-lg mx-auto px-4">
-        <div className="bg-card border border-border/50 rounded-2xl shadow-xl p-8 md:p-10 backdrop-blur-sm">
+        <div className="bg-card border border-border/50 rounded-2xl shadow-xl p-8 md:p-10 backdrop-blur-sm animate-fade-in-up">
           {/* Logo and Header */}
           <div className="mb-10">
             <div className="flex items-center justify-center gap-4 mb-3">

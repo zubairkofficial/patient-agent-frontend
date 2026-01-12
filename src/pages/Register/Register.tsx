@@ -129,7 +129,7 @@ const Register = () => {
         ? error.message 
         : "Registration failed. Please try again."
       toast.error(errorMessage)
-      setIsSubmitting(false)
+      setIsSubmitting(false)  
     }
   }
 
@@ -296,9 +296,9 @@ const Register = () => {
                   tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
                     <Eye className="h-5 w-5" />
+                  ) : (
+                    <EyeOff className="h-5 w-5" />
                   )}
                 </button>
               </div>

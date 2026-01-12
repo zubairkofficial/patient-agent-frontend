@@ -77,18 +77,16 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border shadow-md hover:bg-muted transition-colors"
-        aria-label="Toggle sidebar"
-      >
-        {isMobileOpen ? (
-          <X className="h-5 w-5 text-foreground" />
-        ) : (
+      {/* Mobile menu button - only show when sidebar is closed */}
+      {!isMobileOpen && (
+        <button
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border shadow-md hover:bg-muted transition-colors"
+          aria-label="Toggle sidebar"
+        >
           <Menu className="h-5 w-5 text-foreground" />
-        )}
-      </button>
+        </button>
+      )}
 
       {/* Mobile overlay */}
       {isMobileOpen && (
@@ -108,14 +106,26 @@ const Sidebar = () => {
       >
         <div className="flex flex-col h-full">
           {/* Sidebar header */}
-          <div className="flex items-center gap-3 px-6 py-6 border-b border-border flex-shrink-0">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md">
-              <LayoutDashboard className="h-5 w-5 text-primary-foreground" />
+          <div className="flex items-center justify-between gap-3 px-6 py-6 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md">
+                <LayoutDashboard className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div className="flex flex-col">
+                <h2 className="text-lg font-bold text-foreground leading-tight">Admin Panel</h2>
+                <p className="text-xs text-muted-foreground">Management</p>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <h2 className="text-lg font-bold text-foreground leading-tight">Admin Panel</h2>
-              <p className="text-xs text-muted-foreground">Management</p>
-            </div>
+            {/* Close button for mobile - only show when sidebar is open */}
+            {isMobileOpen && (
+              <button
+                onClick={() => setIsMobileOpen(false)}
+                className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+                aria-label="Close sidebar"
+              >
+                <X className="h-5 w-5 text-foreground" />
+              </button>
+            )}
           </div>
 
           {/* Navigation items */}

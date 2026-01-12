@@ -5,7 +5,7 @@ const AdminHeader = () => {
     <header className="flex w-full h-[70px] border-b border-border bg-card sticky top-0 z-30 flex-shrink-0">
       <div className="flex items-center justify-between w-full px-4 lg:px-6">
         {/* Left side - can be used for breadcrumbs or title */}
-        <div className="flex items-center">
+        <div className="flex items-center pl-12 lg:pl-0">
           <h2 className="text-xl font-semibold text-foreground">Admin Dashboard</h2>
         </div>
 

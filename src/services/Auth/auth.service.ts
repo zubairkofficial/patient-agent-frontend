@@ -2,6 +2,12 @@ import axios from "axios";
 import type { AxiosInstance, AxiosError } from "axios";
 import { BASE_URL } from "@/utils/global.utils";
 
+// Mock admin credentials (for development/testing only)
+const MOCK_ADMIN_CREDENTIALS = {
+  email: "admin@patientagent.com",
+  password: "admin123",
+};
+
 export class AuthService {
   private api: AxiosInstance;
 
@@ -38,12 +44,52 @@ export class AuthService {
     password: string;
   }) {
     try {
+      // Check for mock admin credentials (development/testing only)
+      if (
+        payload.email === MOCK_ADMIN_CREDENTIALS.email &&
+        payload.password === MOCK_ADMIN_CREDENTIALS.password
+      ) {
+        // Mock admin login - no API call needed
+        const mockAdminToken = `mock_admin_token_${Date.now()}`;
+        const mockAdminUser = {
+          id: "admin_1",
+          email: MOCK_ADMIN_CREDENTIALS.email,
+          firstName: "Admin",
+          lastName: "User",
+          role: "admin",
+        };
+
+        localStorage.setItem("accessToken", mockAdminToken);
+        localStorage.setItem("user", JSON.stringify(mockAdminUser));
+        localStorage.setItem("userRole", "admin");
+
+        return {
+          success: true,
+          message: "Admin login successful",
+          data: {
+            accessToken: mockAdminToken,
+            user: mockAdminUser,
+          },
+        };
+      }
+
+      // Regular user login - make API call
       const response = await this.api.post("/auth/login", payload);
       const { data } = response.data;
-      const { accessToken } = data || {};
+      const { accessToken, user } = data || {};
+      
       if (accessToken) {
         localStorage.setItem("accessToken", accessToken);
       }
+      
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        // Store user role if available
+        if (user.role) {
+          localStorage.setItem("userRole", user.role);
+        }
+      }
+      
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -114,6 +160,7 @@ export class AuthService {
     try {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
+      localStorage.removeItem("userRole");
     } catch (error) {
       // Log error but don't throw - logout should always succeed
       console.error("Error during logout:", error);
@@ -134,6 +181,21 @@ export class AuthService {
       localStorage.removeItem("user");
       return null;
     }
+  }
+
+  // 🔐 GET USER ROLE
+  getUserRole(): string | null {
+    try {
+      return localStorage.getItem("userRole");
+    } catch (error) {
+      console.error("Error getting user role:", error);
+      return null;
+    }
+  }
+
+  // 🔐 CHECK IF USER IS ADMIN
+  isAdmin(): boolean {
+    return this.getUserRole() === "admin";
   }
 
   /**

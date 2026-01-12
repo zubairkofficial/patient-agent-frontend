@@ -102,7 +102,14 @@ const Login = () => {
       
       if (response.success) {
         toast.success("Login successful!")
-        navigate("/")
+        
+        // Check if user is admin and redirect accordingly
+        const isAdmin = authService.isAdmin()
+        if (isAdmin) {
+          navigate("/admin")
+        } else {
+          navigate("/")
+        }
       } else {
         toast.error(response.message || "Login failed. Please try again.")
         setIsSubmitting(false)

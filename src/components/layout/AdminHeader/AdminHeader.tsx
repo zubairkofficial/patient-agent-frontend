@@ -1,17 +1,8 @@
-import { LogOut, Bell, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { authService } from "@/services/Auth/auth.service";
+import { Bell, User } from "lucide-react";
 
 const AdminHeader = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await authService.logout();
-    navigate("/login");
-  };
-
   return (
-    <header className="flex w-full h-[70px] border-b border-border bg-card sticky top-0 z-30">
+    <header className="flex w-full h-[70px] border-b border-border bg-card sticky top-0 z-30 flex-shrink-0">
       <div className="flex items-center justify-between w-full px-4 lg:px-6">
         {/* Left side - can be used for breadcrumbs or title */}
         <div className="flex items-center">
@@ -35,16 +26,6 @@ const AdminHeader = () => {
             aria-label="User profile"
           >
             <User className="h-5 w-5" />
-          </button>
-
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted transition-colors shadow-sm hover:shadow-md"
-            aria-label="Logout"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="text-sm font-medium hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>

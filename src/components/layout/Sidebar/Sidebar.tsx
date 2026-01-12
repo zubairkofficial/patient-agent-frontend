@@ -1,9 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
-  Users, 
-  Settings, 
-  FileText,
+  Activity,
+  Stethoscope,
+  Gauge,
+  Pill,
+  User,
+  Settings,
   Menu,
   X
 } from "lucide-react";
@@ -18,22 +21,34 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    path: "/admin",
+    id: "symptoms",
+    label: "Symptoms",
+    icon: Activity,
+    path: "/admin/symptoms",
   },
   {
-    id: "users",
-    label: "Users",
-    icon: Users,
-    path: "/admin/users",
+    id: "diagnosis",
+    label: "Diagnosis",
+    icon: Stethoscope,
+    path: "/admin/diagnosis",
   },
   {
-    id: "reports",
-    label: "Reports",
-    icon: FileText,
-    path: "/admin/reports",
+    id: "severity-scale",
+    label: "Severity Scale",
+    icon: Gauge,
+    path: "/admin/severity-scale",
+  },
+  {
+    id: "treatments",
+    label: "Treatments",
+    icon: Pill,
+    path: "/admin/treatments",
+  },
+  {
+    id: "profile",
+    label: "Profile",
+    icon: User,
+    path: "/admin/profile",
   },
   {
     id: "settings",

@@ -2,12 +2,6 @@ import axios from "axios";
 import type { AxiosInstance, AxiosError } from "axios";
 import { BASE_URL } from "@/utils/global.utils";
 
-// Mock admin credentials (for development/testing only)
-const MOCK_ADMIN_CREDENTIALS = {
-  email: "admin@patientagent.com",
-  password: "admin123",
-};
-
 export class AuthService {
   private api: AxiosInstance;
 
@@ -44,36 +38,8 @@ export class AuthService {
     password: string;
   }) {
     try {
-      // Check for mock admin credentials (development/testing only)
-      if (
-        payload.email === MOCK_ADMIN_CREDENTIALS.email &&
-        payload.password === MOCK_ADMIN_CREDENTIALS.password
-      ) {
-        // Mock admin login - no API call needed
-        const mockAdminToken = `mock_admin_token_${Date.now()}`;
-        const mockAdminUser = {
-          id: "admin_1",
-          email: MOCK_ADMIN_CREDENTIALS.email,
-          firstName: "Admin",
-          lastName: "User",
-          role: "admin",
-        };
-
-        localStorage.setItem("accessToken", mockAdminToken);
-        localStorage.setItem("user", JSON.stringify(mockAdminUser));
-        localStorage.setItem("userRole", "admin");
-
-        return {
-          success: true,
-          message: "Admin login successful",
-          data: {
-            accessToken: mockAdminToken,
-            user: mockAdminUser,
-          },
-        };
-      }
-
-      // Regular user login - make API call
+      // Login API call - works for both regular users and admins
+      // Admin users are identified by their role in the database
       const response = await this.api.post("/auth/login", payload);
       const { data } = response.data;
       const { accessToken, user } = data || {};
@@ -84,11 +50,13 @@ export class AuthService {
       
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
-        // Store user role if available
+        // Store user role from database (ADMIN or USER)
+        // Role is determined by the user's role field in the database
         if (user.role) {
-          localStorage.setItem("userRole", user.role);
+          localStorage.setItem("userRole", user.role as string);
         }
       }
+      console.log(response.data);
       
       return response.data;
     } catch (error) {
@@ -194,8 +162,10 @@ export class AuthService {
   }
 
   // 🔐 CHECK IF USER IS ADMIN
+  // Admin users are identified by role = "admin" or "ADMIN" from database
   isAdmin(): boolean {
-    return this.getUserRole() === "admin";
+    const role = this.getUserRole();
+    return role?.toLowerCase() === "admin";
   }
 
   /**

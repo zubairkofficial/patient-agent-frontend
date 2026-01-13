@@ -103,8 +103,11 @@ const Login = () => {
       if (response.success) {
         toast.success("Login successful!")
         
-        // Check if user is admin and redirect accordingly
-        const isAdmin = authService.isAdmin()
+        // Check role from response data or from authService
+        const userRole = response.data?.user?.role || authService.getUserRole()
+        const isAdmin = userRole?.toLowerCase() === "admin" || authService.isAdmin()
+        
+        // Navigate based on role
         if (isAdmin) {
           navigate("/admin")
         } else {

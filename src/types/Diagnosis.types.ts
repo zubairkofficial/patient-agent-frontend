@@ -1,22 +1,27 @@
 export interface Diagnosis {
   id: string;
+  /**
+   * Diagnostic code, uppercase, unique, required.
+   */
+  code: string;
+  /**
+   * Diagnosis name.
+   */
   name: string;
-  description: string;
-  code?: string; // ICD-10 or similar diagnostic code
-  category?: string;
-  symptoms?: string[]; // Related symptom IDs
-  severityScaleId?: string; // Associated severity scale ID
-  treatments?: string[]; // Related treatment IDs
+  /**
+   * Optional description of the diagnosis.
+   */
+  description?: string;
+  /**
+   * Optional foreign key to a cluster.
+   */
+  clusterId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface DiagnosisFormData {
+  code: string;
   name: string;
   description: string;
-  code: string;
-  category: string;
-  symptoms: string[];
-  severityScaleId: string;
-  treatments: string[];
 }

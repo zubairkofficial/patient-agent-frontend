@@ -1,103 +1,60 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
 import type { Diagnosis, DiagnosisFormData } from "@/types/Diagnosis.types";
 import { toast } from "sonner";
-
-// Mock data - replace with API calls
-const initialDiagnoses: Diagnosis[] = [
-  {
-    id: "1",
-    name: "Generalized Anxiety Disorder (GAD)",
-    description: "Excessive anxiety and worry about various events or activities",
-    code: "F41.1",
-    category: "Mental Health",
-    symptoms: ["1", "2"],
-    severityScaleId: "1",
-    treatments: ["1"],
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Major Depressive Disorder",
-    description: "Persistent feeling of sadness and loss of interest",
-    code: "F32.9",
-    category: "Mental Health",
-    symptoms: ["2", "3"],
-    severityScaleId: "1",
-    treatments: ["2"],
-    createdAt: "2024-01-16",
-    updatedAt: "2024-01-16",
-  },
-  {
-    id: "3",
-    name: "Chronic Migraine",
-    description: "Recurrent headache disorder characterized by severe pain",
-    code: "G43.9",
-    category: "Neurological",
-    symptoms: ["1"],
-    severityScaleId: "2",
-    treatments: ["3"],
-    createdAt: "2024-01-17",
-    updatedAt: "2024-01-17",
-  },
-];
+import { diagnosisService } from "@/services/Diagnosis/diagnosis.service";
 
 const Diagnosis = () => {
-  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>(initialDiagnoses);
+  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDiagnosis, setEditingDiagnosis] = useState<Diagnosis | null>(null);
   const [formData, setFormData] = useState<DiagnosisFormData>({
+    code: "",
     name: "",
     description: "",
-    code: "",
-    category: "",
-    symptoms: [],
-    severityScaleId: "",
-    treatments: [],
   });
   const [errors, setErrors] = useState<Partial<Record<keyof DiagnosisFormData, string>>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock data for dropdowns - replace with API calls
-  const availableSymptoms = [
-    { id: "1", name: "Headache" },
-    { id: "2", name: "Fatigue" },
-    { id: "3", name: "Anxiety" },
-  ];
 
-  const availableSeverityScales = [
-    { id: "1", name: "Anxiety Severity Scale" },
-    { id: "2", name: "Pain Scale" },
-  ];
-
-  const availableTreatments = [
-    { id: "1", name: "Cognitive Behavioral Therapy" },
-    { id: "2", name: "Medication" },
-    { id: "3", name: "Lifestyle Changes" },
-  ];
 
   // Filter diagnoses based on search query
-  const filteredDiagnoses = diagnoses.filter(
-    (diagnosis) =>
-      diagnosis.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      diagnosis.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      diagnosis.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      diagnosis.category?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDiagnoses = diagnoses.filter((diagnosis) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      diagnosis.code.toLowerCase().includes(query) ||
+      diagnosis.name.toLowerCase().includes(query) ||
+      (diagnosis.description ?? "").toLowerCase().includes(query)
+    );
+  });
+
+  const loadDiagnoses = async () => {
+    try {
+      setIsLoading(true);
+      const data = await diagnosisService.getAll();
+      setDiagnoses(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load diagnoses";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadDiagnoses();
+  }, []);
 
   // Reset form
   const resetForm = () => {
     setFormData({
+      code: "",
       name: "",
       description: "",
-      code: "",
-      category: "",
-      symptoms: [],
-      severityScaleId: "",
-      treatments: [],
     });
     setErrors({});
     setEditingDiagnosis(null);
@@ -113,13 +70,9 @@ const Diagnosis = () => {
   // Open form for editing diagnosis
   const handleEdit = (diagnosis: Diagnosis) => {
     setFormData({
+      code: diagnosis.code,
       name: diagnosis.name,
-      description: diagnosis.description,
-      code: diagnosis.code || "",
-      category: diagnosis.category || "",
-      symptoms: diagnosis.symptoms || [],
-      severityScaleId: diagnosis.severityScaleId || "",
-      treatments: diagnosis.treatments || [],
+      description: diagnosis.description ?? "",
     });
     setEditingDiagnosis(diagnosis);
     setIsFormOpen(true);
@@ -130,9 +83,11 @@ const Diagnosis = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+    const nextValue =
+      name === "code" ? value.toUpperCase() : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
 
     // Clear error when user starts typing
@@ -144,41 +99,26 @@ const Diagnosis = () => {
     }
   };
 
-  // Handle multi-select changes
-  const handleMultiSelectChange = (
-    field: "symptoms" | "treatments",
-    value: string
-  ) => {
-    setFormData((prev) => {
-      const currentValues = prev[field];
-      const newValues = currentValues.includes(value)
-        ? currentValues.filter((id) => id !== value)
-        : [...currentValues, value];
-      return {
-        ...prev,
-        [field]: newValues,
-      };
-    });
-  };
-
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof DiagnosisFormData, string>> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Diagnosis name is required";
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-
     if (!formData.code.trim()) {
       newErrors.code = "Diagnostic code is required";
+    } else {
+      const normalizedCode = formData.code.trim().toUpperCase();
+      const exists = diagnoses.some(
+        (d) =>
+          d.code.toUpperCase() === normalizedCode &&
+          (!editingDiagnosis || d.id !== editingDiagnosis.id)
+      );
+      if (exists) {
+        newErrors.code = "Diagnostic code must be unique";
+      }
     }
 
-    if (!formData.category.trim()) {
-      newErrors.category = "Category is required";
+    if (!formData.name.trim()) {
+      newErrors.name = "Diagnosis name is required";
     }
 
     setErrors(newErrors);
@@ -186,69 +126,43 @@ const Diagnosis = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    if (editingDiagnosis) {
-      // Update existing diagnosis
-      setDiagnoses((prev) =>
-        prev.map((diagnosis) =>
-          diagnosis.id === editingDiagnosis.id
-            ? {
-                ...diagnosis,
-                ...formData,
-                updatedAt: new Date().toISOString().split("T")[0],
-              }
-            : diagnosis
-        )
-      );
-      toast.success("Diagnosis updated successfully");
-    } else {
-      // Create new diagnosis
-      const newDiagnosis: Diagnosis = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
-      };
-      setDiagnoses((prev) => [...prev, newDiagnosis]);
-      toast.success("Diagnosis created successfully");
+    try {
+      setIsSubmitting(true);
+      if (editingDiagnosis) {
+        await diagnosisService.update(editingDiagnosis.id, formData);
+        toast.success("Diagnosis updated successfully");
+      } else {
+        await diagnosisService.create(formData);
+        toast.success("Diagnosis created successfully");
+      }
+      await loadDiagnoses();
+      resetForm();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to save diagnosis";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    resetForm();
   };
 
   // Handle delete
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this diagnosis?")) {
-      setDiagnoses((prev) => prev.filter((diagnosis) => diagnosis.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this diagnosis?")) return;
+    try {
+      await diagnosisService.remove(id);
       toast.success("Diagnosis deleted successfully");
+      await loadDiagnoses();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete diagnosis";
+      toast.error(message);
     }
-  };
-
-  // Get symptom names by IDs
-  const getSymptomNames = (symptomIds: string[]) => {
-    return symptomIds
-      .map((id) => availableSymptoms.find((s) => s.id === id)?.name)
-      .filter(Boolean)
-      .join(", ");
-  };
-
-  // Get treatment names by IDs
-  const getTreatmentNames = (treatmentIds: string[]) => {
-    return treatmentIds
-      .map((id) => availableTreatments.find((t) => t.id === id)?.name)
-      .filter(Boolean)
-      .join(", ");
-  };
-
-  // Get severity scale name by ID
-  const getSeverityScaleName = (scaleId: string) => {
-    return availableSeverityScales.find((s) => s.id === scaleId)?.name || "—";
   };
 
   return (
@@ -267,6 +181,7 @@ const Diagnosis = () => {
           <Button
             type="primary"
             size="medium"
+            text="Create Diagnosis"
             onClick={handleCreate}
             className="flex items-center gap-2"
           >
@@ -281,7 +196,7 @@ const Diagnosis = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search diagnoses by name, description, code, or category..."
+              placeholder="Search diagnoses by code, name, or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -291,7 +206,11 @@ const Diagnosis = () => {
 
         {/* Diagnoses List */}
         <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
-          {filteredDiagnoses.length === 0 ? (
+          {isLoading ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground">Loading diagnoses...</p>
+            </div>
+          ) : filteredDiagnoses.length === 0 ? (
             <div className="p-12 text-center">
               <p className="text-muted-foreground">
                 {searchQuery
@@ -305,13 +224,10 @@ const Diagnosis = () => {
                 <thead className="bg-muted/50 border-b border-border">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Code
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Category
+                      Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Description
@@ -328,18 +244,13 @@ const Diagnosis = () => {
                       className="hover:bg-muted/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-foreground font-mono">
+                          {diagnosis.code}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-foreground">
                           {diagnosis.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-foreground font-mono">
-                          {diagnosis.code || "—"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-foreground">
-                          {diagnosis.category || "—"}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -393,6 +304,28 @@ const Diagnosis = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                {/* Code */}
+                <div>
+                  <label
+                    htmlFor="code"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Diagnostic Code <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    id="code"
+                    name="code"
+                    value={formData.code}
+                    onChange={handleChange}
+                    placeholder="Enter unique diagnostic code (UPPERCASE)"
+                    className={errors.code ? "border-red-500" : ""}
+                  />
+                  {errors.code && (
+                    <p className="mt-1 text-sm text-red-500">{errors.code}</p>
+                  )}
+                </div>
+
                 {/* Name */}
                 <div>
                   <label
@@ -415,57 +348,13 @@ const Diagnosis = () => {
                   )}
                 </div>
 
-                {/* Code */}
-                <div>
-                  <label
-                    htmlFor="code"
-                    className="block text-sm font-medium text-foreground mb-2"
-                  >
-                    Diagnostic Code <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    id="code"
-                    name="code"
-                    value={formData.code}
-                    onChange={handleChange}
-                    placeholder="e.g., F41.1, G43.9"
-                    className={errors.code ? "border-red-500" : ""}
-                  />
-                  {errors.code && (
-                    <p className="mt-1 text-sm text-red-500">{errors.code}</p>
-                  )}
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label
-                    htmlFor="category"
-                    className="block text-sm font-medium text-foreground mb-2"
-                  >
-                    Category <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    id="category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    placeholder="e.g., Mental Health, Neurological"
-                    className={errors.category ? "border-red-500" : ""}
-                  />
-                  {errors.category && (
-                    <p className="mt-1 text-sm text-red-500">{errors.category}</p>
-                  )}
-                </div>
-
                 {/* Description */}
                 <div>
                   <label
                     htmlFor="description"
                     className="block text-sm font-medium text-foreground mb-2"
                   >
-                    Description <span className="text-red-500">*</span>
+                    Description <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <textarea
                     id="description"
@@ -487,92 +376,37 @@ const Diagnosis = () => {
                   )}
                 </div>
 
-                {/* Severity Scale */}
-                <div>
-                  <label
-                    htmlFor="severityScaleId"
-                    className="block text-sm font-medium text-foreground mb-2"
-                  >
-                    Severity Scale
-                  </label>
-                  <select
-                    id="severityScaleId"
-                    name="severityScaleId"
-                    value={formData.severityScaleId}
-                    onChange={handleChange}
-                    className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary focus-visible:ring-offset-2"
-                  >
-                    <option value="">Select a severity scale</option>
-                    {availableSeverityScales.map((scale) => (
-                      <option key={scale.id} value={scale.id}>
-                        {scale.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Symptoms */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Related Symptoms
-                  </label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto border border-border rounded-lg p-3">
-                    {availableSymptoms.map((symptom) => (
-                      <label
-                        key={symptom.id}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.symptoms.includes(symptom.id)}
-                          onChange={() =>
-                            handleMultiSelectChange("symptoms", symptom.id)
-                          }
-                          className="rounded border-border text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm text-foreground">{symptom.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Treatments */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Related Treatments
-                  </label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto border border-border rounded-lg p-3">
-                    {availableTreatments.map((treatment) => (
-                      <label
-                        key={treatment.id}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.treatments.includes(treatment.id)}
-                          onChange={() =>
-                            handleMultiSelectChange("treatments", treatment.id)
-                          }
-                          className="rounded border-border text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm text-foreground">{treatment.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Form Actions */}
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                   <Button
                     type="secondary"
                     size="medium"
+                    text="Cancel"
                     onClick={resetForm}
                     htmlType="button"
                   >
                     Cancel
                   </Button>
-                  <Button type="primary" size="medium" htmlType="submit">
-                    {editingDiagnosis ? "Update Diagnosis" : "Create Diagnosis"}
+                  <Button
+                    type="primary"
+                    size="medium"
+                    text={isSubmitting
+                      ? editingDiagnosis
+                        ? "Updating..."
+                        : "Creating..."
+                      : editingDiagnosis
+                      ? "Update Diagnosis"
+                      : "Create Diagnosis"}
+                    htmlType="submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting
+                      ? editingDiagnosis
+                        ? "Updating..."
+                        : "Creating..."
+                      : editingDiagnosis
+                      ? "Update Diagnosis"
+                      : "Create Diagnosis"}
                   </Button>
                 </div>
               </form>

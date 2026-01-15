@@ -11,6 +11,8 @@ const Diagnosis = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDiagnosis, setEditingDiagnosis] = useState<Diagnosis | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [diagnosisToDelete, setDiagnosisToDelete] = useState<Diagnosis | null>(null);
   const [formData, setFormData] = useState<DiagnosisFormData>({
     code: "",
     name: "",
@@ -153,16 +155,29 @@ const Diagnosis = () => {
   };
 
   // Handle delete
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this diagnosis?")) return;
+  const handleDelete = (diagnosis: Diagnosis) => {
+    setDiagnosisToDelete(diagnosis);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!diagnosisToDelete) return;
     try {
-      await diagnosisService.remove(id);
+      await diagnosisService.remove(diagnosisToDelete.id);
       toast.success("Diagnosis deleted successfully");
       await loadDiagnoses();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to delete diagnosis";
       toast.error(message);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setDiagnosisToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setDiagnosisToDelete(null);
   };
 
   return (
@@ -254,7 +269,7 @@ const Diagnosis = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-muted-foreground max-w-md truncate">
+                        <div className="text-sm text-muted-foreground max-w-md">
                           {diagnosis.description}
                         </div>
                       </td>
@@ -269,7 +284,7 @@ const Diagnosis = () => {
                             <span className="hidden sm:inline">Edit</span>
                           </button>
                           <button
-                            onClick={() => handleDelete(diagnosis.id)}
+                            onClick={() => handleDelete(diagnosis)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-card text-red-600 hover:bg-red-50 transition-colors"
                             aria-label="Delete diagnosis"
                           >
@@ -410,6 +425,49 @@ const Diagnosis = () => {
                   </Button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && diagnosisToDelete && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-lg border border-border shadow-lg w-full max-w-md">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Delete Diagnosis
+                </h2>
+              </div>
+              <div className="px-6 py-4 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Are you sure you want to delete this diagnosis?
+                </p>
+                <p className="text-sm">
+                  <span className="font-medium text-foreground">
+                    {diagnosisToDelete.code} - {diagnosisToDelete.name}
+                  </span>
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
+                <Button
+                  type="secondary"
+                  size="medium"
+                  text="Cancel"
+                  onClick={handleCancelDelete}
+                  htmlType="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="primary"
+                  size="medium"
+                  text="Confirm"
+                  onClick={handleConfirmDelete}
+                  htmlType="button"
+                >
+                  Confirm
+                </Button>
+              </div>
             </div>
           </div>
         )}

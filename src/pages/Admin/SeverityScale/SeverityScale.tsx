@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, Search, X } from "lucide-react";
+import { Plus, Edit, Trash2, Search, X, PlusCircle, MinusCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
-import type { SeverityScale, SeverityLevel, SeverityScaleFormData, CreateSeverityScaleDto } from "@/types/SeverityScale.types";
+import type { SeverityScale, SeverityScaleFormData, CreateSeverityScaleDto, SeverityScaleDetails } from "@/types/SeverityScale.types";
 import type { Symptom } from "@/types/Symptom.types";
 import { toast } from "sonner";
 import { severityScaleService } from "@/services/SeverityScale/severity-scale.service";
@@ -23,11 +23,21 @@ const SeverityScaleAdmin = () => {
     name: "",
     description: "",
     levels: [],
+    details: undefined,
   });
   const [createFormData, setCreateFormData] = useState<Partial<CreateSeverityScaleDto>>({
     name: "",
     symptomId: undefined,
+    details: undefined,
   });
+  
+  // Details form state
+  const [detailsLevels, setDetailsLevels] = useState<Array<{ level: number; description: string }>>([]);
+  const [detailsRanges, setDetailsRanges] = useState<{ min: number | ""; max: number | "" }>({ min: "", max: "" });
+  
+  // Edit mode details state
+  const [editDetailsLevels, setEditDetailsLevels] = useState<Array<{ level: number; description: string }>>([]);
+  const [editDetailsRanges, setEditDetailsRanges] = useState<{ min: number | ""; max: number | "" }>({ min: "", max: "" });
 
   type SeverityScaleErrors = Partial<
     Record<keyof SeverityScaleFormData | "symptomId", string>
@@ -76,11 +86,17 @@ const SeverityScaleAdmin = () => {
       name: "",
       description: "",
       levels: [],
+      details: undefined,
     });
     setCreateFormData({
       name: "",
       symptomId: undefined,
+      details: undefined,
     });
+    setDetailsLevels([]);
+    setDetailsRanges({ min: "", max: "" });
+    setEditDetailsLevels([]);
+    setEditDetailsRanges({ min: "", max: "" });
     setErrors({});
     setEditingScale(null);
     setIsFormOpen(false);
@@ -92,11 +108,17 @@ const SeverityScaleAdmin = () => {
       name: "",
       description: "",
       levels: [],
+      details: undefined,
     });
     setCreateFormData({
       name: "",
       symptomId: undefined,
+      details: undefined,
     });
+    setDetailsLevels([]);
+    setDetailsRanges({ min: "", max: "" });
+    setEditDetailsLevels([]);
+    setEditDetailsRanges({ min: "", max: "" });
     setErrors({});
     setEditingScale(null);
     setIsFormOpen(true);
@@ -108,7 +130,21 @@ const SeverityScaleAdmin = () => {
       name: scale.name,
       description: scale.description || "",
       levels: scale.levels ? scale.levels.map((level) => ({ ...level })) : [],
+      details: scale.details,
     });
+    
+    // Populate details form from existing details
+    if (scale.details) {
+      setEditDetailsLevels(scale.details.levels || []);
+      setEditDetailsRanges({
+        min: scale.details.ranges?.min || "",
+        max: scale.details.ranges?.max || "",
+      });
+    } else {
+      setEditDetailsLevels([]);
+      setEditDetailsRanges({ min: "", max: "" });
+    }
+    
     setEditingScale(scale);
     setIsFormOpen(true);
   };
@@ -140,6 +176,77 @@ const SeverityScaleAdmin = () => {
     }
   };
 
+  // Add level to details
+  const handleAddDetailsLevel = (isEdit: boolean) => {
+    if (isEdit) {
+      const maxLevel = editDetailsLevels.length > 0
+        ? Math.max(...editDetailsLevels.map(l => l.level))
+        : 0;
+      setEditDetailsLevels([...editDetailsLevels, { level: maxLevel + 1, description: "" }]);
+    } else {
+      const maxLevel = detailsLevels.length > 0
+        ? Math.max(...detailsLevels.map(l => l.level))
+        : 0;
+      setDetailsLevels([...detailsLevels, { level: maxLevel + 1, description: "" }]);
+    }
+  };
+
+  // Remove level from details
+  const handleRemoveDetailsLevel = (index: number, isEdit: boolean) => {
+    if (isEdit) {
+      setEditDetailsLevels(editDetailsLevels.filter((_, i) => i !== index));
+    } else {
+      setDetailsLevels(detailsLevels.filter((_, i) => i !== index));
+    }
+  };
+
+  // Update level in details
+  const handleUpdateDetailsLevel = (
+    index: number,
+    field: "level" | "description",
+    value: string | number,
+    isEdit: boolean
+  ) => {
+    if (isEdit) {
+      const updated = [...editDetailsLevels];
+      updated[index] = { ...updated[index], [field]: value };
+      setEditDetailsLevels(updated);
+    } else {
+      const updated = [...detailsLevels];
+      updated[index] = { ...updated[index], [field]: value };
+      setDetailsLevels(updated);
+    }
+  };
+
+  // Build details JSON object from form data
+  const buildDetailsObject = (
+    levels: Array<{ level: number; description: string }>,
+    ranges: { min: number | ""; max: number | "" }
+  ): SeverityScaleDetails | undefined => {
+    const details: SeverityScaleDetails = {};
+    
+    // Add levels if any exist
+    const validLevels = levels.filter(l => l.level && l.description.trim());
+    if (validLevels.length > 0) {
+      details.levels = validLevels;
+    }
+    
+    // Add ranges if both min and max are provided
+    if (ranges.min !== "" && ranges.max !== "") {
+      details.ranges = {
+        min: Number(ranges.min),
+        max: Number(ranges.max),
+      };
+    }
+    
+    // Return undefined if no details to send
+    if (Object.keys(details).length === 0) {
+      return undefined;
+    }
+    
+    return details;
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,6 +256,9 @@ const SeverityScaleAdmin = () => {
       if (!validateForm()) {
         return;
       }
+      
+      // Build details object from form data
+      formData.details = buildDetailsObject(editDetailsLevels, editDetailsRanges);
     } else {
       // For creating, validate name and symptomId
       const newErrors: Partial<Record<string, string>> = {};
@@ -158,6 +268,10 @@ const SeverityScaleAdmin = () => {
       if (!createFormData.symptomId) {
         newErrors.symptomId = "Please select a symptom";
       }
+      
+      // Build details object from form data
+      createFormData.details = buildDetailsObject(detailsLevels, detailsRanges);
+      
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
         return;
@@ -345,31 +459,84 @@ const SeverityScaleAdmin = () => {
                         </div>
                       </div>
 
-                      {/* Levels Display (kept for backward compatibility if levels exist) */}
-                      {scale.levels && scale.levels.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {scale.levels.map((level) => (
-                            <div
-                              key={level.level}
-                              className="p-4 rounded-lg border border-border bg-muted/30"
-                            >
-                              <div className="flex items-center gap-2 mb-2">
-                                <div
-                                  className="w-4 h-4 rounded-full"
-                                  style={{ backgroundColor: level.color || "#22c55e" }}
-                                />
-                                <span className="text-xs font-medium text-muted-foreground">
-                                  Level {level.level}
+                      {/* Details Display */}
+                      {scale.details && (
+                        <div className="mt-4 space-y-3">
+                          {/* Details Levels */}
+                          {scale.details.levels && scale.details.levels.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-foreground mb-2">
+                                Details Levels
+                              </h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                {scale.details.levels.map((level, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="p-3 rounded-lg border border-border bg-muted/20"
+                                  >
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-xs font-medium text-muted-foreground">
+                                        Level {level.level}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-foreground">
+                                      {level.description}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Details Ranges */}
+                          {scale.details.ranges && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-foreground mb-2">
+                                Ranges
+                              </h4>
+                              <div className="flex items-center gap-4 text-sm">
+                                <span className="text-muted-foreground">
+                                  Min: <span className="font-medium text-foreground">{scale.details.ranges.min}</span>
+                                </span>
+                                <span className="text-muted-foreground">
+                                  Max: <span className="font-medium text-foreground">{scale.details.ranges.max}</span>
                                 </span>
                               </div>
-                              <h4 className="font-semibold text-foreground mb-1">
-                                {level.label}
-                              </h4>
-                              <p className="text-sm text-muted-foreground">
-                                {level.description}
-                              </p>
                             </div>
-                          ))}
+                          )}
+                        </div>
+                      )}
+
+                      {/* Legacy Levels Display (kept for backward compatibility if levels exist) */}
+                      {scale.levels && scale.levels.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-semibold text-foreground mb-2">
+                            Legacy Levels
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {scale.levels.map((level) => (
+                              <div
+                                key={level.level}
+                                className="p-4 rounded-lg border border-border bg-muted/30"
+                              >
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div
+                                    className="w-4 h-4 rounded-full"
+                                    style={{ backgroundColor: level.color || "#22c55e" }}
+                                  />
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    Level {level.level}
+                                  </span>
+                                </div>
+                                <h4 className="font-semibold text-foreground mb-1">
+                                  {level.label}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {level.description}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -402,7 +569,7 @@ const SeverityScaleAdmin = () => {
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 {editingScale ? (
                   <>
-                    {/* Edit Mode - Only Name */}
+                    {/* Edit Mode - Name and Details */}
                     <div>
                       <label
                         htmlFor="name"
@@ -422,6 +589,122 @@ const SeverityScaleAdmin = () => {
                       {errors.name && (
                         <p className="mt-1 text-sm text-red-500">{errors.name}</p>
                       )}
+                    </div>
+
+                    {/* Details Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-sm font-medium text-foreground">
+                          Details <span className="text-muted-foreground">(optional)</span>
+                        </label>
+                      </div>
+
+                      {/* Levels */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="block text-xs font-medium text-foreground">
+                            Levels
+                          </label>
+                          <Button
+                            type="secondary"
+                            size="medium"
+                            text="Add Level"
+                            onClick={() => handleAddDetailsLevel(true)}
+                            htmlType="button"
+                            className="flex items-center gap-2"
+                          >
+                            <PlusCircle className="h-4 w-4" />
+                            Add Level
+                          </Button>
+                        </div>
+                        <div className="space-y-3">
+                          {editDetailsLevels.map((level, index) => (
+                            <div
+                              key={index}
+                              className="p-3 rounded-lg border border-border bg-muted/20 flex items-center gap-3"
+                            >
+                              <Input
+                                type="number"
+                                value={level.level || ""}
+                                onChange={(e) =>
+                                  handleUpdateDetailsLevel(
+                                    index,
+                                    "level",
+                                    parseInt(e.target.value) || 0,
+                                    true
+                                  )
+                                }
+                                placeholder="Level"
+                                className="w-20"
+                              />
+                              <Input
+                                type="text"
+                                value={level.description}
+                                onChange={(e) =>
+                                  handleUpdateDetailsLevel(
+                                    index,
+                                    "description",
+                                    e.target.value,
+                                    true
+                                  )
+                                }
+                                placeholder="Description"
+                                className="flex-1"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDetailsLevel(index, true)}
+                                className="p-2 rounded hover:bg-muted transition-colors text-red-600"
+                                aria-label="Remove level"
+                              >
+                                <MinusCircle className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                          {editDetailsLevels.length === 0 && (
+                            <p className="text-xs text-muted-foreground italic">
+                              No levels added. Click "Add Level" to add one.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Ranges */}
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-2">
+                          Ranges
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <label className="block text-xs text-muted-foreground mb-1">Min</label>
+                            <Input
+                              type="number"
+                              value={editDetailsRanges.min}
+                              onChange={(e) =>
+                                setEditDetailsRanges({
+                                  ...editDetailsRanges,
+                                  min: e.target.value ? Number(e.target.value) : "",
+                                })
+                              }
+                              placeholder="Min"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs text-muted-foreground mb-1">Max</label>
+                            <Input
+                              type="number"
+                              value={editDetailsRanges.max}
+                              onChange={(e) =>
+                                setEditDetailsRanges({
+                                  ...editDetailsRanges,
+                                  max: e.target.value ? Number(e.target.value) : "",
+                                })
+                              }
+                              placeholder="Max"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -484,9 +767,121 @@ const SeverityScaleAdmin = () => {
                       )}
                     </div>
 
-                    <p className="text-sm text-muted-foreground">
-                      You can add description and levels after creating the severity scale.
-                    </p>
+                    {/* Details Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-sm font-medium text-foreground">
+                          Details <span className="text-muted-foreground">(optional)</span>
+                        </label>
+                      </div>
+
+                      {/* Levels */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="block text-xs font-medium text-foreground">
+                            Levels
+                          </label>
+                          <Button
+                            type="secondary"
+                            size="medium"
+                            text="Add Level"
+                            onClick={() => handleAddDetailsLevel(false)}
+                            htmlType="button"
+                            className="flex items-center gap-2"
+                          >
+                            <PlusCircle className="h-4 w-4" />
+                            Add Level
+                          </Button>
+                        </div>
+                        <div className="space-y-3">
+                          {detailsLevels.map((level, index) => (
+                            <div
+                              key={index}
+                              className="p-3 rounded-lg border border-border bg-muted/20 flex items-center gap-3"
+                            >
+                              <Input
+                                type="number"
+                                value={level.level || ""}
+                                onChange={(e) =>
+                                  handleUpdateDetailsLevel(
+                                    index,
+                                    "level",
+                                    parseInt(e.target.value) || 0,
+                                    false
+                                  )
+                                }
+                                placeholder="Level"
+                                className="w-20"
+                              />
+                              <Input
+                                type="text"
+                                value={level.description}
+                                onChange={(e) =>
+                                  handleUpdateDetailsLevel(
+                                    index,
+                                    "description",
+                                    e.target.value,
+                                    false
+                                  )
+                                }
+                                placeholder="Description"
+                                className="flex-1"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDetailsLevel(index, false)}
+                                className="p-2 rounded hover:bg-muted transition-colors text-red-600"
+                                aria-label="Remove level"
+                              >
+                                <MinusCircle className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                          {detailsLevels.length === 0 && (
+                            <p className="text-xs text-muted-foreground italic">
+                              No levels added. Click "Add Level" to add one.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Ranges */}
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-2">
+                          Ranges
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <label className="block text-xs text-muted-foreground mb-1">Min</label>
+                            <Input
+                              type="number"
+                              value={detailsRanges.min}
+                              onChange={(e) =>
+                                setDetailsRanges({
+                                  ...detailsRanges,
+                                  min: e.target.value ? Number(e.target.value) : "",
+                                })
+                              }
+                              placeholder="Min"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs text-muted-foreground mb-1">Max</label>
+                            <Input
+                              type="number"
+                              value={detailsRanges.max}
+                              onChange={(e) =>
+                                setDetailsRanges({
+                                  ...detailsRanges,
+                                  max: e.target.value ? Number(e.target.value) : "",
+                                })
+                              }
+                              placeholder="Max"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </>
                 )}
 

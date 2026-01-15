@@ -43,6 +43,24 @@ export class SeverityScaleService {
             description: scale.symptom.description,
           }
         : undefined,
+      details: scale.details
+        ? {
+            levels: Array.isArray(scale.details.levels) ? scale.details.levels : undefined,
+            ranges: scale.details.ranges
+              ? {
+                  min: scale.details.ranges.min,
+                  max: scale.details.ranges.max,
+                }
+              : undefined,
+            // Preserve any additional properties
+            ...(Object.keys(scale.details).reduce((acc, key) => {
+              if (key !== "levels" && key !== "ranges") {
+                acc[key] = scale.details[key];
+              }
+              return acc;
+            }, {} as any)),
+          }
+        : undefined,
       createdAt: scale.createdAt,
       updatedAt: scale.updatedAt,
     };
@@ -92,11 +110,15 @@ export class SeverityScaleService {
         throw new Error("Symptom is required");
       }
 
-      // Send name and symptomId
-      const payload = {
+      // Send name, symptomId, and details (if provided)
+      const payload: any = {
         name: createData.name.trim(),
         symptomId: createData.symptomId,
       };
+
+      if (createData.details) {
+        payload.details = createData.details;
+      }
 
       const response = await this.api.post("/severity-scales", payload);
       if (response.data.success && response.data.data) {

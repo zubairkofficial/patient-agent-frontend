@@ -11,6 +11,8 @@ const Treatments = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTreatment, setEditingTreatment] = useState<Treatment | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [treatmentToDelete, setTreatmentToDelete] = useState<Treatment | null>(null);
   const [formData, setFormData] = useState<TreatmentFormData>({
     code: "",
     name: "",
@@ -167,16 +169,29 @@ const Treatments = () => {
   };
 
   // Handle delete
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this treatment?")) return;
+  const handleDelete = (treatment: Treatment) => {
+    setTreatmentToDelete(treatment);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!treatmentToDelete) return;
     try {
-      await treatmentsService.remove(id);
+      await treatmentsService.remove(treatmentToDelete.id);
       toast.success("Treatment deleted successfully");
       await loadTreatments();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to delete treatment";
       toast.error(message);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setTreatmentToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setTreatmentToDelete(null);
   };
 
   return (
@@ -283,7 +298,7 @@ const Treatments = () => {
                             <span className="hidden sm:inline">Edit</span>
                           </button>
                           <button
-                            onClick={() => handleDelete(treatment.id)}
+                            onClick={() => handleDelete(treatment)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-card text-red-600 hover:bg-red-50 transition-colors"
                             aria-label="Delete treatment"
                           >
@@ -420,6 +435,49 @@ const Treatments = () => {
                   </Button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && treatmentToDelete && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-lg border border-border shadow-lg w-full max-w-md">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Delete Treatment
+                </h2>
+              </div>
+              <div className="px-6 py-4 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Are you sure you want to delete this treatment?
+                </p>
+                <p className="text-sm">
+                  <span className="font-medium text-foreground">
+                    {treatmentToDelete.code} - {treatmentToDelete.name}
+                  </span>
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
+                <Button
+                  type="secondary"
+                  size="medium"
+                  text="Cancel"
+                  onClick={handleCancelDelete}
+                  htmlType="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="primary"
+                  size="medium"
+                  text="Confirm"
+                  onClick={handleConfirmDelete}
+                  htmlType="button"
+                >
+                  Confirm
+                </Button>
+              </div>
             </div>
           </div>
         )}

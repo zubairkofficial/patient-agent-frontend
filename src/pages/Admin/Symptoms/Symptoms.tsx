@@ -11,6 +11,8 @@ const Symptoms = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSymptom, setEditingSymptom] = useState<Symptom | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [symptomToDelete, setSymptomToDelete] = useState<Symptom | null>(null);
   const [formData, setFormData] = useState<SymptomFormData>({
     code: "",
     name: "",
@@ -140,22 +142,31 @@ const Symptoms = () => {
     }
   };
 
-  // Handle delete via API
-  const handleDelete = async (id: string) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this symptom?"
-    );
-    if (!confirmed) return;
+  // Handle delete
+  const handleDelete = (symptom: Symptom) => {
+    setSymptomToDelete(symptom);
+    setIsDeleteModalOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!symptomToDelete) return;
     try {
-      await symptomsService.remove(id);
+      await symptomsService.remove(symptomToDelete.id);
       toast.success("Symptom deleted successfully");
       await loadSymptoms();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to delete symptom";
       toast.error(message);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setSymptomToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSymptomToDelete(null);
   };
 
   return (
@@ -260,7 +271,7 @@ const Symptoms = () => {
                             <span className="hidden sm:inline">Edit</span>
                           </button>
                           <button
-                            onClick={() => handleDelete(symptom.id)}
+                            onClick={() => handleDelete(symptom)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-card text-red-600 hover:bg-red-50 transition-colors"
                             aria-label="Delete symptom"
                           >
@@ -400,6 +411,49 @@ const Symptoms = () => {
                   </Button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && symptomToDelete && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-lg border border-border shadow-lg w-full max-w-md">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Delete Symptom
+                </h2>
+              </div>
+              <div className="px-6 py-4 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Are you sure you want to delete this symptom?
+                </p>
+                <p className="text-sm">
+                  <span className="font-medium text-foreground">
+                    {symptomToDelete.code} - {symptomToDelete.name}
+                  </span>
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
+                <Button
+                  type="secondary"
+                  size="medium"
+                  text="Cancel"
+                  onClick={handleCancelDelete}
+                  htmlType="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="primary"
+                  size="medium"
+                  text="Confirm"
+                  onClick={handleConfirmDelete}
+                  htmlType="button"
+                >
+                  Confirm
+                </Button>
+              </div>
             </div>
           </div>
         )}

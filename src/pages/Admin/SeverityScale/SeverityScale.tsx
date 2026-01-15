@@ -17,6 +17,8 @@ const SeverityScaleAdmin = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingScale, setEditingScale] = useState<SeverityScale | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [scaleToDelete, setScaleToDelete] = useState<SeverityScale | null>(null);
   const [formData, setFormData] = useState<SeverityScaleFormData>({
     name: "",
     description: "",
@@ -183,20 +185,30 @@ const SeverityScaleAdmin = () => {
   };
 
   // Handle delete
-  const handleDelete = async (id: string | number) => {
-    if (!window.confirm("Are you sure you want to delete this severity scale?")) {
-      return;
-    }
+  const handleDelete = (scale: SeverityScale) => {
+    setScaleToDelete(scale);
+    setIsDeleteModalOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!scaleToDelete) return;
     try {
-      await severityScaleService.delete(id);
+      await severityScaleService.delete(scaleToDelete.id);
       toast.success("Severity scale deleted successfully");
       await loadSeverityScales();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to delete severity scale";
       toast.error(message);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setScaleToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setScaleToDelete(null);
   };
 
   // Validate form (edit mode only validates name)
@@ -323,7 +335,7 @@ const SeverityScaleAdmin = () => {
                             <span className="hidden sm:inline">Edit</span>
                           </button>
                           <button
-                            onClick={() => handleDelete(scale.id)}
+                            onClick={() => handleDelete(scale)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-card text-red-600 hover:bg-red-50 transition-colors"
                             aria-label="Delete severity scale"
                           >
@@ -509,6 +521,49 @@ const SeverityScaleAdmin = () => {
                   </Button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && scaleToDelete && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-lg border border-border shadow-lg w-full max-w-md">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Delete Severity Scale
+                </h2>
+              </div>
+              <div className="px-6 py-4 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Are you sure you want to delete this severity scale?
+                </p>
+                <p className="text-sm">
+                  <span className="font-medium text-foreground">
+                    {scaleToDelete.name}
+                  </span>
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
+                <Button
+                  type="secondary"
+                  size="medium"
+                  text="Cancel"
+                  onClick={handleCancelDelete}
+                  htmlType="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="primary"
+                  size="medium"
+                  text="Confirm"
+                  onClick={handleConfirmDelete}
+                  htmlType="button"
+                >
+                  Confirm
+                </Button>
+              </div>
             </div>
           </div>
         )}

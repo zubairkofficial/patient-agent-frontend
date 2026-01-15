@@ -277,7 +277,7 @@ const Profile = () => {
                       htmlType="button"
                       disabled={isSaving}
                     >
-                      <Save className="h-4 w-4 mr-2" />
+                      {/* <Save className="h-4 w-4 mr-2" /> */}
                       {isSaving ? "Saving..." : "Save Changes"}
                     </Button>
                   </div>

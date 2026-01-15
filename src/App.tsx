@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import Layout from '@/components/layout/Layout/Layout'
 import AdminLayout from '@/components/layout/AdminLayout/AdminLayout'
@@ -13,10 +13,14 @@ import Dashboard from '@/pages/Users/Dashboard/Dashboard'
 import ClusterFocus from '@/pages/Users/Cluster/Cluster'
 import Chat from '@/pages/Users/Chats/Chat'
 import Symptoms from '@/pages/Admin/Symptoms/Symptoms'
-import Diagnosis from '@/pages/Admin/Diagnosis/Diagnosis'
 import SeverityScaleAdmin from '@/pages/Admin/SeverityScale/SeverityScale'
 import Treatments from '@/pages/Admin/Treatments/Treatments'
+import Profile from '@/pages/Admin/Profile/Profile'
+import Settings from '@/pages/Admin/Settings/Settings'
 import { authService } from '@/services/Auth/auth.service'
+
+// Lazy load Diagnosis to avoid type conflict
+const Diagnosis = lazy(() => import('@/pages/Admin/Diagnosis/Diagnosis'))
 
 function AppRoutes() {
   const location = useLocation()
@@ -65,9 +69,18 @@ function AppRoutes() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/symptoms" replace />} />
               <Route path="symptoms" element={<Symptoms />} />
-              <Route path="diagnosis" element={<Diagnosis />} />
+              <Route 
+                path="diagnosis" 
+                element={
+                  <Suspense fallback={<div className="p-12 text-center"><p className="text-muted-foreground">Loading...</p></div>}>
+                    <Diagnosis />
+                  </Suspense>
+                } 
+              />
               <Route path="severity-scale" element={<SeverityScaleAdmin />} />
               <Route path="treatments" element={<Treatments />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/admin/symptoms" replace />} />
             </Route>
           ) : (

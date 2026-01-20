@@ -7,22 +7,13 @@ export class DiagnosisService {
   private api: AxiosInstance;
 
   constructor() {
+    const token = localStorage.getItem("accessToken");
     this.api = axios.create({
       baseURL: BASE_URL,
-    });
-
-    this.api.interceptors.request.use((config) => {
-      if (!config.headers) {
-        config.headers = {};
-      }
-
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        config.headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      config.headers["Content-Type"] = "application/json";
-      return config;
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
     });
   }
 

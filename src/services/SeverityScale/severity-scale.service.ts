@@ -7,21 +7,13 @@ export class SeverityScaleService {
   private api: AxiosInstance;
 
   constructor() {
+    const token = localStorage.getItem("accessToken");
     this.api = axios.create({
       baseURL: BASE_URL,
-    });
-
-    // Attach auth token from localStorage to every request if available
-    this.api.interceptors.request.use((config) => {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      // Always send JSON
-      config.headers["Content-Type"] = "application/json";
-
-      return config;
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
     });
   }
 

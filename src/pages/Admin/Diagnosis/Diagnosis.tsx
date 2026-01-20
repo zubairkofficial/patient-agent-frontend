@@ -6,7 +6,7 @@ import type { Diagnosis, DiagnosisFormData } from "@/types/Diagnosis.types";
 import { toast } from "sonner";
 import { diagnosisService } from "@/services/Diagnosis/diagnosis.service";
 
-const Diagnosis = () => {
+const DiagnosisPage = () => {
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -476,4 +476,4 @@ const Diagnosis = () => {
   );
 };
 
-export default Diagnosis;
+export default DiagnosisPage;

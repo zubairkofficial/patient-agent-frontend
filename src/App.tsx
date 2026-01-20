@@ -13,7 +13,7 @@ import Dashboard from '@/pages/Users/Dashboard/Dashboard'
 import ClusterFocus from '@/pages/Users/Cluster/Cluster'
 import Chat from '@/pages/Users/Chats/Chat'
 import Symptoms from '@/pages/Admin/Symptoms/Symptoms'
-import Diagnosis from '@/pages/Admin/Diagnosis/Diagnosis'
+import DiagnosisPage from '@/pages/Admin/Diagnosis/Diagnosis'
 import SeverityScaleAdmin from '@/pages/Admin/SeverityScale/SeverityScale'
 import Treatments from '@/pages/Admin/Treatments/Treatments'
 import { authService } from '@/services/Auth/auth.service'
@@ -65,7 +65,7 @@ function AppRoutes() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/symptoms" replace />} />
               <Route path="symptoms" element={<Symptoms />} />
-              <Route path="diagnosis" element={<Diagnosis />} />
+              <Route path="diagnosis" element={<DiagnosisPage />} />
               <Route path="severity-scale" element={<SeverityScaleAdmin />} />
               <Route path="treatments" element={<Treatments />} />
               <Route path="*" element={<Navigate to="/admin/symptoms" replace />} />

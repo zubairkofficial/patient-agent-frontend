@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Message from "@/components/Message/Message"
 import { Input } from "@/components/ui/Input/Input"
@@ -7,6 +7,7 @@ import type { ChatMessage } from "@/types/Message.types"
 
 const Chat = () => {
   const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -33,6 +34,11 @@ const Chat = () => {
     setInput("")
     setIsSending(true)
 
+    // Focus input immediately after sending
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 0)
+
     // Simulated bot reply – replace with API call later.
     setTimeout(() => {
       const botMessage: ChatMessage = {
@@ -43,8 +49,18 @@ const Chat = () => {
       }
       setMessages((prev) => [...prev, botMessage])
       setIsSending(false)
+      
+      // Focus input after bot response
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
     }, 700)
   }
+
+  // Auto-focus input on component mount
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -117,6 +133,7 @@ const Chat = () => {
           <div className="border-t bg-background py-4 px-4">
             <div className="max-w-6xl mx-auto flex items-center gap-3">
               <Input
+                ref={inputRef}
                 placeholder="Type your message..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

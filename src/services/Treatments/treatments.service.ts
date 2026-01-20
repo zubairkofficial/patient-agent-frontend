@@ -45,9 +45,17 @@ export class TreatmentsService {
     }
   }
 
-  async update(id: number | string, payload: TreatmentFormData): Promise<Treatment> {
+  async update(id: number | string, payload: Partial<TreatmentFormData>): Promise<Treatment> {
     try {
-      const response = await this.api.patch(`/treatments/${id}`, payload);
+      // Only send fields that have been changed (not undefined/null/empty)
+      const updatePayload = Object.entries(payload).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      const response = await this.api.patch(`/treatments/${id}`, updatePayload);
       return this.mapApiTreatment(response.data?.data);
     } catch (error) {
       throw this.handleError(error);

@@ -87,12 +87,35 @@ export class SymptomsService {
   /**
    * Update an existing symptom by id
    */
-  async update(id: number | string, payload: SymptomFormData): Promise<Symptom> {
+  async update(id: number | string, payload: Partial<SymptomFormData>): Promise<Symptom> {
     try {
-      const response = await this.api.patch(
-        `/symptoms/${id}`,
-        this.buildPayload(payload)
-      );
+      // Only send fields that have been changed (not undefined/null/empty)
+      const updatePayload = Object.entries(payload).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      // If name is provided but code is not, generate code from name
+      // If code is provided, use it
+      if (updatePayload.name && !updatePayload.code) {
+        const name = updatePayload.name.trim();
+        const fallbackCode = name
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9\-]/g, "")
+          .slice(0, 100);
+        updatePayload.code = fallbackCode;
+        updatePayload.label = name;
+      } else if (updatePayload.code) {
+        updatePayload.code = updatePayload.code.trim();
+        if (updatePayload.name) {
+          updatePayload.label = updatePayload.name.trim();
+        }
+      }
+
+      const response = await this.api.patch(`/symptoms/${id}`, updatePayload);
       const apiSymptom = response.data?.data;
       return this.mapApiSymptom(apiSymptom);
     } catch (error) {

@@ -45,9 +45,17 @@ export class DiagnosisService {
     }
   }
 
-  async update(id: number | string, payload: DiagnosisFormData): Promise<Diagnosis> {
+  async update(id: number | string, payload: Partial<DiagnosisFormData>): Promise<Diagnosis> {
     try {
-      const response = await this.api.patch(`/diagnoses/${id}`, payload);
+      // Only send fields that have been changed (not undefined/null/empty)
+      const updatePayload = Object.entries(payload).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      const response = await this.api.patch(`/diagnoses/${id}`, updatePayload);
       return this.mapApiDiagnosis(response.data?.data);
     } catch (error) {
       throw this.handleError(error);

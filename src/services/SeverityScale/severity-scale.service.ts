@@ -130,7 +130,26 @@ export class SeverityScaleService {
     updateData: Partial<SeverityScaleFormData>
   ): Promise<SeverityScale> {
     try {
-      const response = await this.api.patch(`/severity-scales/${id}`, updateData);
+      // Only send fields that have been changed (not undefined/null/empty)
+      const updatePayload = Object.entries(updateData).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          // For arrays, check if it's not empty
+          if (Array.isArray(value)) {
+            if (value.length > 0) {
+              acc[key] = value;
+            }
+          } else if (typeof value === "string" && value !== "") {
+            acc[key] = value;
+          } else if (typeof value === "object" && value !== null) {
+            acc[key] = value;
+          } else if (typeof value !== "string") {
+            acc[key] = value;
+          }
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      const response = await this.api.patch(`/severity-scales/${id}`, updatePayload);
       if (response.data.success) {
         return this.normalizeSeverityScale(response.data.data);
       }

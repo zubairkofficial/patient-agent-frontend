@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 import type { InputProps } from "@/types/Input.types"
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type = "text", ...props }, ref) => {
+  ({ className, type = "text", borderColor, style, ...props }, ref) => {
     return (
       <input
         type={type}
@@ -14,6 +14,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           "disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
+        style={{
+          ...(style || {}),
+          ...(borderColor ? { borderColor } : {}),
+        }}
         ref={ref}
         {...props}
       />

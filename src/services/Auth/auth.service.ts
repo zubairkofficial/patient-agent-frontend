@@ -38,12 +38,26 @@ export class AuthService {
     password: string;
   }) {
     try {
+      // Login API call - works for both regular users and admins
+      // Admin users are identified by their role in the database
       const response = await this.api.post("/auth/login", payload);
       const { data } = response.data;
-      const { accessToken } = data || {};
+      const { accessToken, user } = data || {};
+      
       if (accessToken) {
         localStorage.setItem("accessToken", accessToken);
       }
+      
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        // Store user role from database (ADMIN or USER)
+        // Role is determined by the user's role field in the database
+        if (user.role) {
+          localStorage.setItem("userRole", user.role as string);
+        }
+      }
+      console.log(response.data);
+      
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -114,6 +128,7 @@ export class AuthService {
     try {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
+      localStorage.removeItem("userRole");
     } catch (error) {
       // Log error but don't throw - logout should always succeed
       console.error("Error during logout:", error);
@@ -134,6 +149,23 @@ export class AuthService {
       localStorage.removeItem("user");
       return null;
     }
+  }
+
+  // 🔐 GET USER ROLE
+  getUserRole(): string | null {
+    try {
+      return localStorage.getItem("userRole");
+    } catch (error) {
+      console.error("Error getting user role:", error);
+      return null;
+    }
+  }
+
+  // 🔐 CHECK IF USER IS ADMIN
+  // Admin users are identified by role = "admin" or "ADMIN" from database
+  isAdmin(): boolean {
+    const role = this.getUserRole();
+    return role?.toLowerCase() === "admin";
   }
 
   /**

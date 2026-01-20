@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { useState, useEffect } from 'react'
 import { Toaster } from 'sonner'
 import Layout from '@/components/layout/Layout/Layout'
+import AdminLayout from '@/components/layout/AdminLayout/AdminLayout'
 import Login from '@/pages/Login/Login'
 import Register from '@/pages/Register/Register'
 import VerifyOTP from '@/pages/VerifyOTP/VerifyOTP'
@@ -11,6 +12,11 @@ import ChangePassword from '@/pages/ChangePassword/ChangePassword'
 import Dashboard from '@/pages/Users/Dashboard/Dashboard'
 import ClusterFocus from '@/pages/Users/Cluster/Cluster'
 import Chat from '@/pages/Users/Chats/Chat'
+import Symptoms from '@/pages/Admin/Symptoms/Symptoms'
+import Diagnosis from '@/pages/Admin/Diagnosis/Diagnosis'
+import SeverityScaleAdmin from '@/pages/Admin/SeverityScale/SeverityScale'
+import Treatments from '@/pages/Admin/Treatments/Treatments'
+import { authService } from '@/services/Auth/auth.service'
 
 function AppRoutes() {
   const location = useLocation()
@@ -18,17 +24,21 @@ function AppRoutes() {
     const token = localStorage.getItem("accessToken")
     return !!token
   })
+  const [isAdmin, setIsAdmin] = useState(() => {
+    return authService.isAdmin()
+  })
 
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("accessToken")
       setIsAuthenticated(!!token)
+      setIsAdmin(authService.isAdmin())
     }
 
     checkAuth()
     
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "accessToken") {
+      if (e.key === "accessToken" || e.key === "userRole") {
         checkAuth()
       }
     }
@@ -43,18 +53,34 @@ function AppRoutes() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken")
     setIsAuthenticated(!!token)
+    setIsAdmin(authService.isAdmin())
   }, [location.pathname])
 
   return (
     <Routes>
       {isAuthenticated ? (
         <>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-          </Route>
-          <Route path="/cluster/:clusterId" element={<ClusterFocus />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {isAdmin ? (
+            // Admin routes
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="/admin/symptoms" replace />} />
+              <Route path="symptoms" element={<Symptoms />} />
+              <Route path="diagnosis" element={<Diagnosis />} />
+              <Route path="severity-scale" element={<SeverityScaleAdmin />} />
+              <Route path="treatments" element={<Treatments />} />
+              <Route path="*" element={<Navigate to="/admin/symptoms" replace />} />
+            </Route>
+          ) : (
+            // Regular user routes
+            <>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+              </Route>
+              <Route path="/cluster/:clusterId" element={<ClusterFocus />} />
+              <Route path="/chat" element={<Chat />} />
+            </>
+          )}
+          <Route path="*" element={<Navigate to={isAdmin ? "/admin" : "/"} replace />} />
         </>
       ) : (
         <>

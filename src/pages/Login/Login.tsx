@@ -102,7 +102,17 @@ const Login = () => {
       
       if (response.success) {
         toast.success("Login successful!")
-        navigate("/")
+        
+        // Check role from response data or from authService
+        const userRole = response.data?.user?.role || authService.getUserRole()
+        const isAdmin = userRole?.toLowerCase() === "admin" || authService.isAdmin()
+        
+        // Navigate based on role
+        if (isAdmin) {
+          navigate("/admin")
+        } else {
+          navigate("/")
+        }
       } else {
         toast.error(response.message || "Login failed. Please try again.")
         setIsSubmitting(false)
@@ -214,9 +224,9 @@ const Login = () => {
                   tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
                     <Eye className="h-5 w-5" />
+                  ) : (
+                    <EyeOff className="h-5 w-5" />
                   )}
                 </button>
               </div>

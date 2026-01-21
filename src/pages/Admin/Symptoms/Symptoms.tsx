@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Search, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
 import type { Symptom, SymptomFormData } from "@/types/Symptom.types";
+import type { SeverityScale } from "@/types/SeverityScale.types";
 import { toast } from "sonner";
 import { symptomsService } from "@/services/Symptoms/symptoms.service";
 import { severityScaleService } from "@/services/SeverityScale/severity-scale.service";
@@ -23,7 +24,7 @@ const Symptoms = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewingSymptom, setViewingSymptom] = useState<Symptom | null>(null);
-  const [severityScales, setSeverityScales] = useState<any[]>([]);
+  const [severityScales, setSeverityScales] = useState<SeverityScale[]>([]);
   const [isLoadingSeverityScales, setIsLoadingSeverityScales] = useState(false);
 
   const loadSymptoms = async () => {
@@ -530,42 +531,43 @@ const Symptoms = () => {
                     {severityScales.map((scale) => (
                       <div
                         key={scale.id}
-                        className="bg-background rounded-lg border border-border p-4"
+                        className="bg-background rounded-lg border border-border p-5"
                       >
-                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                        <h3 className="text-lg font-semibold text-foreground mb-4">
                           {scale.name}
                         </h3>
-                        {scale.description && (
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {scale.description}
-                          </p>
-                        )}
-                        {scale.details && (
-                          <div className="mt-3 bg-muted/30 rounded-lg p-3">
-                            <h4 className="text-sm font-medium text-foreground mb-2">
-                              Details:
+                        
+                        {/* Detail Levels Display */}
+                        {scale.details && Object.keys(scale.details).length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="text-sm font-semibold text-foreground mb-3">
+                              Detail Levels
                             </h4>
-                            <pre className="text-xs text-foreground overflow-x-auto">
-                              {JSON.stringify(scale.details, null, 2)}
-                            </pre>
-                          </div>
-                        )}
-                        {scale.levels && scale.levels.length > 0 && (
-                          <div className="mt-3">
-                            <h4 className="text-sm font-medium text-foreground mb-2">
-                              Levels:
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {scale.levels.map((level: string, index: number) => (
-                                <span
-                                  key={index}
-                                  className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full"
-                                >
-                                  {level}
-                                </span>
-                              ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {Object.entries(scale.details)
+                                .sort(([, a], [, b]) => (a as number) - (b as number))
+                                .map(([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="p-4 rounded-lg border border-border bg-muted/20 flex items-center justify-between"
+                                  >
+                                    <span className="font-medium text-foreground capitalize">
+                                      {key}
+                                    </span>
+                                    <span className="text-lg font-bold text-primary">
+                                      {value}
+                                    </span>
+                                  </div>
+                                ))}
                             </div>
                           </div>
+                        )}
+                        
+                        {/* Empty state if no details */}
+                        {(!scale.details || Object.keys(scale.details).length === 0) && (
+                          <p className="text-sm text-muted-foreground italic">
+                            No detail levels configured for this scale.
+                          </p>
                         )}
                       </div>
                     ))}

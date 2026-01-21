@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Search, X, PlusCircle, MinusCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
-import type { SeverityScale, SeverityScaleFormData, CreateSeverityScaleDto, SeverityScaleDetails } from "@/types/SeverityScale.types";
+import type { SeverityScale, SeverityScaleFormData, CreateSeverityScaleDto } from "@/types/SeverityScale.types";
 import type { Symptom } from "@/types/Symptom.types";
 import { toast } from "sonner";
 import { severityScaleService } from "@/services/SeverityScale/severity-scale.service";
 import { symptomsService } from "@/services/Symptoms/symptoms.service";
+
+interface DetailEntry {
+  key: string;
+  value: number;
+}
 
 const SeverityScaleAdmin = () => {
   const [severityScales, setSeverityScales] = useState<SeverityScale[]>([]);
@@ -19,31 +24,26 @@ const SeverityScaleAdmin = () => {
   const [editingScale, setEditingScale] = useState<SeverityScale | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [scaleToDelete, setScaleToDelete] = useState<SeverityScale | null>(null);
+  
+  // Form state
   const [formData, setFormData] = useState<SeverityScaleFormData>({
     name: "",
-    description: "",
-    levels: [],
-    details: undefined,
+    details: {},
   });
   const [createFormData, setCreateFormData] = useState<Partial<CreateSeverityScaleDto>>({
     name: "",
     symptomId: undefined,
-    details: undefined,
+    details: {},
   });
   
-  // Details form state
-  const [detailsLevels, setDetailsLevels] = useState<Array<{ level: number; description: string }>>([]);
-  const [detailsRanges, setDetailsRanges] = useState<{ min: number | ""; max: number | "" }>({ min: "", max: "" });
+  // Details entries state (for easier form management)
+  const [detailEntries, setDetailEntries] = useState<DetailEntry[]>([]);
   
-  // Edit mode details state
-  const [editDetailsLevels, setEditDetailsLevels] = useState<Array<{ level: number; description: string }>>([]);
-  const [editDetailsRanges, setEditDetailsRanges] = useState<{ min: number | ""; max: number | "" }>({ min: "", max: "" });
-
-  type SeverityScaleErrors = Partial<
-    Record<keyof SeverityScaleFormData | "symptomId", string>
-  >;
-
-  const [errors, setErrors] = useState<SeverityScaleErrors>({});
+  const [errors, setErrors] = useState<{
+    name?: string;
+    symptomId?: string;
+    details?: string;
+  }>({});
 
   // Load severity scales on mount
   const loadSeverityScales = async () => {
@@ -84,19 +84,14 @@ const SeverityScaleAdmin = () => {
   const resetForm = () => {
     setFormData({
       name: "",
-      description: "",
-      levels: [],
-      details: undefined,
+      details: {},
     });
     setCreateFormData({
       name: "",
       symptomId: undefined,
-      details: undefined,
+      details: {},
     });
-    setDetailsLevels([]);
-    setDetailsRanges({ min: "", max: "" });
-    setEditDetailsLevels([]);
-    setEditDetailsRanges({ min: "", max: "" });
+    setDetailEntries([]);
     setErrors({});
     setEditingScale(null);
     setIsFormOpen(false);
@@ -104,23 +99,7 @@ const SeverityScaleAdmin = () => {
 
   // Open form for creating new severity scale
   const handleCreate = () => {
-    setFormData({
-      name: "",
-      description: "",
-      levels: [],
-      details: undefined,
-    });
-    setCreateFormData({
-      name: "",
-      symptomId: undefined,
-      details: undefined,
-    });
-    setDetailsLevels([]);
-    setDetailsRanges({ min: "", max: "" });
-    setEditDetailsLevels([]);
-    setEditDetailsRanges({ min: "", max: "" });
-    setErrors({});
-    setEditingScale(null);
+    resetForm();
     setIsFormOpen(true);
   };
 
@@ -128,22 +107,15 @@ const SeverityScaleAdmin = () => {
   const handleEdit = (scale: SeverityScale) => {
     setFormData({
       name: scale.name,
-      description: scale.description || "",
-      levels: scale.levels ? scale.levels.map((level) => ({ ...level })) : [],
-      details: scale.details,
+      details: scale.details || {},
     });
     
-    // Populate details form from existing details
-    if (scale.details) {
-      setEditDetailsLevels(scale.details.levels || []);
-      setEditDetailsRanges({
-        min: scale.details.ranges?.min || "",
-        max: scale.details.ranges?.max || "",
-      });
-    } else {
-      setEditDetailsLevels([]);
-      setEditDetailsRanges({ min: "", max: "" });
-    }
+    // Convert details object to entries array
+    const entries: DetailEntry[] = Object.entries(scale.details || {}).map(([key, value]) => ({
+      key,
+      value: Number(value),
+    }));
+    setDetailEntries(entries);
     
     setEditingScale(scale);
     setIsFormOpen(true);
@@ -151,7 +123,7 @@ const SeverityScaleAdmin = () => {
 
   // Handle form input changes
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
@@ -167,8 +139,8 @@ const SeverityScaleAdmin = () => {
       }));
     }
 
-    // Clear error when user starts typing (supports both form and create errors)
-    if (errors[name as keyof SeverityScaleErrors]) {
+    // Clear error when user starts typing
+    if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
@@ -176,115 +148,102 @@ const SeverityScaleAdmin = () => {
     }
   };
 
-  // Add level to details
-  const handleAddDetailsLevel = (isEdit: boolean) => {
-    if (isEdit) {
-      const maxLevel = editDetailsLevels.length > 0
-        ? Math.max(...editDetailsLevels.map(l => l.level))
-        : 0;
-      setEditDetailsLevels([...editDetailsLevels, { level: maxLevel + 1, description: "" }]);
-    } else {
-      const maxLevel = detailsLevels.length > 0
-        ? Math.max(...detailsLevels.map(l => l.level))
-        : 0;
-      setDetailsLevels([...detailsLevels, { level: maxLevel + 1, description: "" }]);
-    }
+  // Add detail entry
+  const handleAddDetailEntry = () => {
+    setDetailEntries([...detailEntries, { key: "", value: 0 }]);
   };
 
-  // Remove level from details
-  const handleRemoveDetailsLevel = (index: number, isEdit: boolean) => {
-    if (isEdit) {
-      setEditDetailsLevels(editDetailsLevels.filter((_, i) => i !== index));
-    } else {
-      setDetailsLevels(detailsLevels.filter((_, i) => i !== index));
-    }
+  // Remove detail entry
+  const handleRemoveDetailEntry = (index: number) => {
+    setDetailEntries(detailEntries.filter((_, i) => i !== index));
   };
 
-  // Update level in details
-  const handleUpdateDetailsLevel = (
+  // Update detail entry
+  const handleUpdateDetailEntry = (
     index: number,
-    field: "level" | "description",
-    value: string | number,
-    isEdit: boolean
+    field: "key" | "value",
+    value: string | number
   ) => {
-    if (isEdit) {
-      const updated = [...editDetailsLevels];
-      updated[index] = { ...updated[index], [field]: value };
-      setEditDetailsLevels(updated);
+    const updated = [...detailEntries];
+    if (field === "key") {
+      updated[index] = { ...updated[index], key: value as string };
     } else {
-      const updated = [...detailsLevels];
-      updated[index] = { ...updated[index], [field]: value };
-      setDetailsLevels(updated);
+      updated[index] = { ...updated[index], value: Number(value) };
     }
+    setDetailEntries(updated);
   };
 
-  // Build details JSON object from form data
-  const buildDetailsObject = (
-    levels: Array<{ level: number; description: string }>,
-    ranges: { min: number | ""; max: number | "" }
-  ): SeverityScaleDetails | undefined => {
-    const details: SeverityScaleDetails = {};
-    
-    // Add levels if any exist
-    const validLevels = levels.filter(l => l.level && l.description.trim());
-    if (validLevels.length > 0) {
-      details.levels = validLevels;
-    }
-    
-    // Add ranges if both min and max are provided
-    if (ranges.min !== "" && ranges.max !== "") {
-      details.ranges = {
-        min: Number(ranges.min),
-        max: Number(ranges.max),
-      };
-    }
-    
-    // Return undefined if no details to send
-    if (Object.keys(details).length === 0) {
-      return undefined;
-    }
-    
+  // Convert entries array to details object
+  const buildDetailsObject = (entries: DetailEntry[]): { [key: string]: number } => {
+    const details: { [key: string]: number } = {};
+    entries.forEach((entry) => {
+      if (entry.key.trim() && !isNaN(entry.value)) {
+        details[entry.key.trim()] = entry.value;
+      }
+    });
     return details;
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Validate form
+  const validateForm = (): boolean => {
+    const newErrors: typeof errors = {};
 
     if (editingScale) {
-      // For editing, validate full form
-      if (!validateForm()) {
-        return;
+      if (!formData.name.trim()) {
+        newErrors.name = "Severity scale name is required";
       }
-      
-      // Build details object from form data
-      formData.details = buildDetailsObject(editDetailsLevels, editDetailsRanges);
     } else {
-      // For creating, validate name and symptomId
-      const newErrors: Partial<Record<string, string>> = {};
       if (!createFormData.name?.trim()) {
         newErrors.name = "Severity scale name is required";
       }
       if (!createFormData.symptomId) {
         newErrors.symptomId = "Please select a symptom";
       }
-      
-      // Build details object from form data
-      createFormData.details = buildDetailsObject(detailsLevels, detailsRanges);
-      
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
-      }
     }
+
+    // Validate details entries
+    const hasInvalidEntries = detailEntries.some(
+      (entry) => entry.key.trim() === "" && entry.value !== 0
+    );
+    if (hasInvalidEntries) {
+      newErrors.details = "All detail entries must have a valid key";
+    }
+
+    // Check for duplicate keys
+    const keys = detailEntries.map((e) => e.key.trim()).filter((k) => k !== "");
+    const hasDuplicates = keys.length !== new Set(keys).size;
+    if (hasDuplicates) {
+      newErrors.details = "Duplicate keys are not allowed";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const details = buildDetailsObject(detailEntries);
 
     try {
       setIsSubmitting(true);
       if (editingScale) {
-        await severityScaleService.update(editingScale.id, formData);
+        await severityScaleService.update(editingScale.id, {
+          name: formData.name,
+          details: Object.keys(details).length > 0 ? details : undefined,
+        });
         toast.success("Severity scale updated successfully");
       } else {
-        await severityScaleService.create(createFormData as CreateSeverityScaleDto);
+        await severityScaleService.create({
+          name: createFormData.name!,
+          symptomId: createFormData.symptomId!,
+          details: Object.keys(details).length > 0 ? details : undefined,
+        });
         toast.success("Severity scale created successfully");
       }
       await loadSeverityScales();
@@ -325,28 +284,11 @@ const SeverityScaleAdmin = () => {
     setScaleToDelete(null);
   };
 
-  // Validate form (edit mode only validates name)
-  const validateForm = (): boolean => {
-    const newErrors: SeverityScaleErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Severity scale name is required";
-    }
-
-    setErrors((prev) => ({
-      ...prev,
-      ...newErrors,
-    }));
-
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Filter severity scales based on search query
   const filteredScales = severityScales.filter((scale) => {
     const q = searchQuery.toLowerCase();
     return (
       scale.name.toLowerCase().includes(q) ||
-      (scale.description || "").toLowerCase().includes(q) ||
       (scale.symptom?.name || "").toLowerCase().includes(q) ||
       (scale.symptom?.code || "").toLowerCase().includes(q)
     );
@@ -362,7 +304,7 @@ const SeverityScaleAdmin = () => {
               Severity Scales
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage severity scales and their levels
+              Manage severity scales with custom detail levels
             </p>
           </div>
           <Button
@@ -383,7 +325,7 @@ const SeverityScaleAdmin = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search severity scales by name or description..."
+              placeholder="Search severity scales by name or symptom..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -433,11 +375,6 @@ const SeverityScaleAdmin = () => {
                               )}
                             </p>
                           )}
-                          {scale.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {scale.description}
-                            </p>
-                          )}
                         </div>
                         <div className="flex items-center gap-2 ml-4">
                           <button
@@ -460,82 +397,27 @@ const SeverityScaleAdmin = () => {
                       </div>
 
                       {/* Details Display */}
-                      {scale.details && (
-                        <div className="mt-4 space-y-3">
-                          {/* Details Levels */}
-                          {scale.details.levels && scale.details.levels.length > 0 && (
-                            <div>
-                              <h4 className="text-sm font-semibold text-foreground mb-2">
-                                Details Levels
-                              </h4>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {scale.details.levels.map((level, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="p-3 rounded-lg border border-border bg-muted/20"
-                                  >
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="text-xs font-medium text-muted-foreground">
-                                        Level {level.level}
-                                      </span>
-                                    </div>
-                                    <p className="text-sm text-foreground">
-                                      {level.description}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Details Ranges */}
-                          {scale.details.ranges && (
-                            <div>
-                              <h4 className="text-sm font-semibold text-foreground mb-2">
-                                Ranges
-                              </h4>
-                              <div className="flex items-center gap-4 text-sm">
-                                <span className="text-muted-foreground">
-                                  Min: <span className="font-medium text-foreground">{scale.details.ranges.min}</span>
-                                </span>
-                                <span className="text-muted-foreground">
-                                  Max: <span className="font-medium text-foreground">{scale.details.ranges.max}</span>
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Legacy Levels Display (kept for backward compatibility if levels exist) */}
-                      {scale.levels && scale.levels.length > 0 && (
+                      {scale.details && Object.keys(scale.details).length > 0 && (
                         <div className="mt-4">
-                          <h4 className="text-sm font-semibold text-foreground mb-2">
-                            Legacy Levels
+                          <h4 className="text-sm font-semibold text-foreground mb-3">
+                            Detail Levels
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {scale.levels.map((level) => (
-                              <div
-                                key={level.level}
-                                className="p-4 rounded-lg border border-border bg-muted/30"
-                              >
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div
-                                    className="w-4 h-4 rounded-full"
-                                    style={{ backgroundColor: level.color || "#22c55e" }}
-                                  />
-                                  <span className="text-xs font-medium text-muted-foreground">
-                                    Level {level.level}
+                            {Object.entries(scale.details)
+                              .sort(([, a], [, b]) => a - b)
+                              .map(([key, value]) => (
+                                <div
+                                  key={key}
+                                  className="p-4 rounded-lg border border-border bg-muted/20 flex items-center justify-between"
+                                >
+                                  <span className="font-medium text-foreground capitalize">
+                                    {key}
+                                  </span>
+                                  <span className="text-lg font-bold text-primary">
+                                    {value}
                                   </span>
                                 </div>
-                                <h4 className="font-semibold text-foreground mb-1">
-                                  {level.label}
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {level.description}
-                                </p>
-                              </div>
-                            ))}
+                              ))}
                           </div>
                         </div>
                       )}
@@ -550,7 +432,7 @@ const SeverityScaleAdmin = () => {
         {/* Create/Edit Form Modal */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-card rounded-lg border border-border shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-card rounded-lg border border-border shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-foreground">
                   {editingScale
@@ -567,323 +449,149 @@ const SeverityScaleAdmin = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                {editingScale ? (
-                  <>
-                    {/* Edit Mode - Name and Details */}
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        Severity Scale Name <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Enter severity scale name"
-                        className={errors.name ? "border-red-500" : ""}
-                      />
-                      {errors.name && (
-                        <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                      )}
-                    </div>
+                {/* Name Field */}
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Severity Scale Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={editingScale ? formData.name : createFormData.name}
+                    onChange={handleChange}
+                    placeholder="e.g., Pain Scale"
+                    className={errors.name ? "border-red-500" : ""}
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                  )}
+                </div>
 
-                    {/* Details Section */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-sm font-medium text-foreground">
-                          Details <span className="text-muted-foreground">(optional)</span>
-                        </label>
-                      </div>
-
-                      {/* Levels */}
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <label className="block text-xs font-medium text-foreground">
-                            Levels
-                          </label>
-                          <Button
-                            type="secondary"
-                            size="medium"
-                            text="Add Level"
-                            onClick={() => handleAddDetailsLevel(true)}
-                            htmlType="button"
-                            className="flex items-center gap-2"
-                          >
-                            <PlusCircle className="h-4 w-4" />
-                            Add Level
-                          </Button>
-                        </div>
-                        <div className="space-y-3">
-                          {editDetailsLevels.map((level, index) => (
-                            <div
-                              key={index}
-                              className="p-3 rounded-lg border border-border bg-muted/20 flex items-center gap-3"
-                            >
-                              <Input
-                                type="number"
-                                value={level.level || ""}
-                                onChange={(e) =>
-                                  handleUpdateDetailsLevel(
-                                    index,
-                                    "level",
-                                    parseInt(e.target.value) || 0,
-                                    true
-                                  )
-                                }
-                                placeholder="Level"
-                                className="w-20"
-                              />
-                              <Input
-                                type="text"
-                                value={level.description}
-                                onChange={(e) =>
-                                  handleUpdateDetailsLevel(
-                                    index,
-                                    "description",
-                                    e.target.value,
-                                    true
-                                  )
-                                }
-                                placeholder="Description"
-                                className="flex-1"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveDetailsLevel(index, true)}
-                                className="p-2 rounded hover:bg-muted transition-colors text-red-600"
-                                aria-label="Remove level"
-                              >
-                                <MinusCircle className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ))}
-                          {editDetailsLevels.length === 0 && (
-                            <p className="text-xs text-muted-foreground italic">
-                              No levels added. Click "Add Level" to add one.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Ranges */}
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-2">
-                          Ranges
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1">
-                            <label className="block text-xs text-muted-foreground mb-1">Min</label>
-                            <Input
-                              type="number"
-                              value={editDetailsRanges.min}
-                              onChange={(e) =>
-                                setEditDetailsRanges({
-                                  ...editDetailsRanges,
-                                  min: e.target.value ? Number(e.target.value) : "",
-                                })
-                              }
-                              placeholder="Min"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <label className="block text-xs text-muted-foreground mb-1">Max</label>
-                            <Input
-                              type="number"
-                              value={editDetailsRanges.max}
-                              onChange={(e) =>
-                                setEditDetailsRanges({
-                                  ...editDetailsRanges,
-                                  max: e.target.value ? Number(e.target.value) : "",
-                                })
-                              }
-                              placeholder="Max"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Create Mode - Name and Symptom */}
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        Severity Scale Name <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={createFormData.name}
-                        onChange={handleChange}
-                        placeholder="Enter severity scale name"
-                        className={errors.name ? "border-red-500" : ""}
-                      />
-                      {errors.name && (
-                        <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="symptomId"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        Symptom <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        id="symptomId"
-                        name="symptomId"
-                        value={createFormData.symptomId || ""}
-                        onChange={handleChange}
-                        className={`
-                          flex w-full rounded-lg border border-input bg-background px-4 py-2 text-sm
-                          text-foreground placeholder:text-muted-foreground
-                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary focus-visible:ring-offset-2
-                          disabled:cursor-not-allowed disabled:opacity-50
-                          ${errors.symptomId ? "border-red-500" : ""}
-                        `}
-                        disabled={isLoadingSymptoms}
-                      >
-                        <option value="">Select a symptom</option>
-                        {symptoms.map((symptom) => (
-                          <option key={symptom.id} value={symptom.id}>
-                            {symptom.name} ({symptom.code})
-                          </option>
-                        ))}
-                      </select>
-                      {errors.symptomId && (
-                        <p className="mt-1 text-sm text-red-500">{errors.symptomId}</p>
-                      )}
-                      {isLoadingSymptoms && (
-                        <p className="mt-1 text-sm text-muted-foreground">Loading symptoms...</p>
-                      )}
-                    </div>
-
-                    {/* Details Section */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-sm font-medium text-foreground">
-                          Details <span className="text-muted-foreground">(optional)</span>
-                        </label>
-                      </div>
-
-                      {/* Levels */}
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <label className="block text-xs font-medium text-foreground">
-                            Levels
-                          </label>
-                          <Button
-                            type="secondary"
-                            size="medium"
-                            text="Add Level"
-                            onClick={() => handleAddDetailsLevel(false)}
-                            htmlType="button"
-                            className="flex items-center gap-2"
-                          >
-                            <PlusCircle className="h-4 w-4" />
-                            Add Level
-                          </Button>
-                        </div>
-                        <div className="space-y-3">
-                          {detailsLevels.map((level, index) => (
-                            <div
-                              key={index}
-                              className="p-3 rounded-lg border border-border bg-muted/20 flex items-center gap-3"
-                            >
-                              <Input
-                                type="number"
-                                value={level.level || ""}
-                                onChange={(e) =>
-                                  handleUpdateDetailsLevel(
-                                    index,
-                                    "level",
-                                    parseInt(e.target.value) || 0,
-                                    false
-                                  )
-                                }
-                                placeholder="Level"
-                                className="w-20"
-                              />
-                              <Input
-                                type="text"
-                                value={level.description}
-                                onChange={(e) =>
-                                  handleUpdateDetailsLevel(
-                                    index,
-                                    "description",
-                                    e.target.value,
-                                    false
-                                  )
-                                }
-                                placeholder="Description"
-                                className="flex-1"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveDetailsLevel(index, false)}
-                                className="p-2 rounded hover:bg-muted transition-colors text-red-600"
-                                aria-label="Remove level"
-                              >
-                                <MinusCircle className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ))}
-                          {detailsLevels.length === 0 && (
-                            <p className="text-xs text-muted-foreground italic">
-                              No levels added. Click "Add Level" to add one.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Ranges */}
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-2">
-                          Ranges
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1">
-                            <label className="block text-xs text-muted-foreground mb-1">Min</label>
-                            <Input
-                              type="number"
-                              value={detailsRanges.min}
-                              onChange={(e) =>
-                                setDetailsRanges({
-                                  ...detailsRanges,
-                                  min: e.target.value ? Number(e.target.value) : "",
-                                })
-                              }
-                              placeholder="Min"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <label className="block text-xs text-muted-foreground mb-1">Max</label>
-                            <Input
-                              type="number"
-                              value={detailsRanges.max}
-                              onChange={(e) =>
-                                setDetailsRanges({
-                                  ...detailsRanges,
-                                  max: e.target.value ? Number(e.target.value) : "",
-                                })
-                              }
-                              placeholder="Max"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
+                {/* Symptom Field (Create Mode Only) */}
+                {!editingScale && (
+                  <div>
+                    <label
+                      htmlFor="symptomId"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
+                      Symptom <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="symptomId"
+                      name="symptomId"
+                      value={createFormData.symptomId || ""}
+                      onChange={handleChange}
+                      className={`
+                        flex w-full rounded-lg border border-input bg-background px-4 py-2 text-sm
+                        text-foreground placeholder:text-muted-foreground
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary focus-visible:ring-offset-2
+                        disabled:cursor-not-allowed disabled:opacity-50
+                        ${errors.symptomId ? "border-red-500" : ""}
+                      `}
+                      disabled={isLoadingSymptoms}
+                    >
+                      <option value="">Select a symptom</option>
+                      {symptoms.map((symptom) => (
+                        <option key={symptom.id} value={symptom.id}>
+                          {symptom.name} ({symptom.code})
+                        </option>
+                      ))}
+                    </select>
+                    {errors.symptomId && (
+                      <p className="mt-1 text-sm text-red-500">{errors.symptomId}</p>
+                    )}
+                    {isLoadingSymptoms && (
+                      <p className="mt-1 text-sm text-muted-foreground">Loading symptoms...</p>
+                    )}
+                  </div>
                 )}
+
+                {/* Details Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-foreground">
+                      Detail Levels{" "}
+                      <span className="text-muted-foreground text-xs">(optional)</span>
+                    </label>
+                    <Button
+                      type="secondary"
+                      size="medium"
+                      text="Add Level"
+                      onClick={handleAddDetailEntry}
+                      htmlType="button"
+                      className="flex items-center gap-2"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      Add Level
+                    </Button>
+                  </div>
+
+                  {errors.details && (
+                    <p className="text-sm text-red-500">{errors.details}</p>
+                  )}
+
+                  <div className="space-y-3">
+                    {detailEntries.map((entry, index) => (
+                      <div
+                        key={index}
+                        className="p-3 rounded-lg border border-border bg-muted/20 flex items-center gap-3"
+                      >
+                        <div className="flex-1">
+                          <Input
+                            type="text"
+                            value={entry.key}
+                            onChange={(e) =>
+                              handleUpdateDetailEntry(index, "key", e.target.value)
+                            }
+                            placeholder="e.g., mild, moderate, severe"
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="w-24">
+                          <Input
+                            type="number"
+                            value={entry.value || ""}
+                            onChange={(e) =>
+                              handleUpdateDetailEntry(
+                                index,
+                                "value",
+                                parseInt(e.target.value) || 0
+                              )
+                            }
+                            placeholder="Value"
+                            className="w-full"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDetailEntry(index)}
+                          className="p-2 rounded hover:bg-muted transition-colors text-red-600"
+                          aria-label="Remove entry"
+                        >
+                          <MinusCircle className="h-5 w-5" />
+                        </button>
+                      </div>
+                    ))}
+                    {detailEntries.length === 0 && (
+                      <p className="text-sm text-muted-foreground italic text-center py-4">
+                        No detail levels added. Click "Add Level" to add custom severity levels.
+                      </p>
+                    )}
+                  </div>
+
+                  {detailEntries.length > 0 && (
+                    <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-sm font-medium text-blue-900 mb-2">Preview:</p>
+                      <code className="text-xs text-blue-800 block whitespace-pre-wrap">
+                        {JSON.stringify(buildDetailsObject(detailEntries), null, 2)}
+                      </code>
+                    </div>
+                  )}
+                </div>
 
                 {/* Form Actions */}
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
@@ -900,17 +608,21 @@ const SeverityScaleAdmin = () => {
                   <Button
                     type="primary"
                     size="medium"
-                    text={isSubmitting
-                      ? editingScale
-                        ? "Updating..."
-                        : "Creating..."
-                      : editingScale
-                      ? "Update Severity Scale"
-                      : "Create Severity Scale"}
+                    text={
+                      isSubmitting
+                        ? editingScale
+                          ? "Updating..."
+                          : "Creating..."
+                        : editingScale
+                        ? "Update Severity Scale"
+                        : "Create Severity Scale"
+                    }
                     htmlType="submit"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Saving..." : editingScale
+                    {isSubmitting
+                      ? "Saving..."
+                      : editingScale
                       ? "Update Severity Scale"
                       : "Create Severity Scale"}
                   </Button>

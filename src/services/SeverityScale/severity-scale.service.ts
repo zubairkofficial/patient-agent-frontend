@@ -7,14 +7,26 @@ export class SeverityScaleService {
   private api: AxiosInstance;
 
   constructor() {
-    const token = localStorage.getItem("accessToken");
     this.api = axios.create({
       baseURL: BASE_URL,
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
       },
     });
+
+    // Add request interceptor to include token on every request
+    this.api.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
   }
 
   /**
@@ -24,33 +36,14 @@ export class SeverityScaleService {
     return {
       id: String(scale.id),
       name: scale.name || "",
-      description: scale.description || undefined,
-      levels: Array.isArray(scale.levels) ? scale.levels : [],
       symptomId: scale.symptomId,
+      details: scale.details || {},
       symptom: scale.symptom
         ? {
             id: scale.symptom.id,
             code: scale.symptom.code,
             name: scale.symptom.name,
             description: scale.symptom.description,
-          }
-        : undefined,
-      details: scale.details
-        ? {
-            levels: Array.isArray(scale.details.levels) ? scale.details.levels : undefined,
-            ranges: scale.details.ranges
-              ? {
-                  min: scale.details.ranges.min,
-                  max: scale.details.ranges.max,
-                }
-              : undefined,
-            // Preserve any additional properties
-            ...(Object.keys(scale.details).reduce((acc, key) => {
-              if (key !== "levels" && key !== "ranges") {
-                acc[key] = scale.details[key];
-              }
-              return acc;
-            }, {} as any)),
           }
         : undefined,
       createdAt: scale.createdAt,
@@ -81,6 +74,21 @@ export class SeverityScaleService {
       const response = await this.api.get(`/severity-scales/${id}`);
       if (response.data.success) {
         return this.normalizeSeverityScale(response.data.data);
+      }
+      throw new Error("Invalid response format");
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get severity scales by symptom ID
+   */
+  async getBySymptomId(symptomId: string | number): Promise<SeverityScale[]> {
+    try {
+      const response = await this.api.get(`/severity-scales/by-symptom/${symptomId}`);
+      if (response.data.success && Array.isArray(response.data.data)) {
+        return response.data.data.map((scale: any) => this.normalizeSeverityScale(scale));
       }
       throw new Error("Invalid response format");
     } catch (error) {

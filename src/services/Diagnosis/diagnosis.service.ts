@@ -7,14 +7,26 @@ export class DiagnosisService {
   private api: AxiosInstance;
 
   constructor() {
-    const token = localStorage.getItem("accessToken");
     this.api = axios.create({
       baseURL: BASE_URL,
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
       },
     });
+
+    // Add request interceptor to include token on every request
+    this.api.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
   }
 
   async getAll(): Promise<Diagnosis[]> {

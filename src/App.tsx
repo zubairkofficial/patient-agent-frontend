@@ -15,6 +15,7 @@ import Chat from '@/pages/Users/Chats/Chat'
 import Symptoms from '@/pages/Admin/Symptoms/Symptoms'
 import DiagnosisPage from '@/pages/Admin/Diagnosis/Diagnosis'
 import SeverityScaleRoutes from '@/pages/Admin/SeverityScale/SeverityScaleRoutes'
+import ProfileTemplateRoutes from '@/pages/Admin/ProfileTemplate/ProfileTemplateRoutes'
 import Treatments from '@/pages/Admin/Treatments/Treatments'
 import { authService } from '@/services/Auth/auth.service'
 
@@ -67,6 +68,7 @@ function AppRoutes() {
               <Route path="symptoms" element={<Symptoms />} />
               <Route path="diagnosis" element={<DiagnosisPage />} />
               <Route path="severity-scale/*" element={<SeverityScaleRoutes />} />
+              <Route path="profile-templates/*" element={<ProfileTemplateRoutes />} />
               <Route path="treatments" element={<Treatments />} />
               <Route path="*" element={<Navigate to="/admin/symptoms" replace />} />
             </Route>

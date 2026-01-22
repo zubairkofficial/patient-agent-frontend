@@ -16,6 +16,10 @@ import type {
   OptionalSymptom,
   AbsentSymptom,
 } from "@/types/ProfileTemplate.types";
+import { diagnosisService } from "@/services/Diagnosis/diagnosis.service";
+import { symptomsService } from "@/services/Symptoms/symptoms.service";
+import { severityScaleService } from "@/services/SeverityScale/severity-scale.service";
+import { operationsService } from "@/services/Operations/operations.service";
 
 const EditProfileTemplate = () => {
   const navigate = useNavigate();
@@ -30,13 +34,23 @@ const EditProfileTemplate = () => {
   const [operations, setOperations] = useState<Operation[]>([]);
 
   // Form state
-  const [selectedDiagnosis, setSelectedDiagnosis] = useState<string | number>("");
-  const [requiredSymptoms, setRequiredSymptoms] = useState<RequiredSymptom[]>([]);
-  const [typicalPresentSymptoms, setTypicalPresentSymptoms] = useState<TypicalPresentSymptom[]>([]);
-  const [optionalSymptoms, setOptionalSymptoms] = useState<OptionalSymptom[]>([]);
+  const [selectedDiagnosis, setSelectedDiagnosis] = useState<string | number>(
+    "",
+  );
+  const [requiredSymptoms, setRequiredSymptoms] = useState<RequiredSymptom[]>(
+    [],
+  );
+  const [typicalPresentSymptoms, setTypicalPresentSymptoms] = useState<
+    TypicalPresentSymptom[]
+  >([]);
+  const [optionalSymptoms, setOptionalSymptoms] = useState<OptionalSymptom[]>(
+    [],
+  );
   const [absentSymptoms, setAbsentSymptoms] = useState<AbsentSymptom[]>([]);
   const [selectedRules, setSelectedRules] = useState<(string | number)[]>([]);
-  const [selectedExclusionFlags, setSelectedExclusionFlags] = useState<(string | number)[]>([]);
+  const [selectedExclusionFlags, setSelectedExclusionFlags] = useState<
+    (string | number)[]
+  >([]);
 
   // Severity scales cache by symptom
   const [severityScalesBySymptom, setSeverityScalesBySymptom] = useState<
@@ -48,14 +62,19 @@ const EditProfileTemplate = () => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [diagnosisData, symptomData, severityScaleData, operationData, templateData] =
-          await Promise.all([
-            profileTemplateService.getDiagnoses(),
-            profileTemplateService.getSymptoms(),
-            profileTemplateService.getAllSeverityScales(),
-            profileTemplateService.getOperations(),
-            id ? profileTemplateService.getById(id) : Promise.resolve(null),
-          ]);
+        const [
+          diagnosisData,
+          symptomData,
+          severityScaleData,
+          operationData,
+          templateData,
+        ] = await Promise.all([
+          diagnosisService.getAll(),
+          symptomsService.getAll(),
+          severityScaleService.getAll(),
+          operationsService.getAll(),
+          id ? profileTemplateService.getById(id) : Promise.resolve(null),
+        ]);
 
         setDiagnoses(diagnosisData);
         setSymptoms(symptomData);
@@ -64,9 +83,9 @@ const EditProfileTemplate = () => {
 
         // Pre-cache severity scales by symptom
         const cache: Record<string | number, SeverityScale[]> = {};
-        symptomData.forEach((symptom) => {
+        symptomData.forEach((symptom: any) => {
           cache[symptom.id] = severityScaleData.filter(
-            (scale) => scale.symptomId === symptom.id
+            (scale) => scale.symptomId === symptom.id,
           );
         });
         setSeverityScalesBySymptom(cache);
@@ -95,7 +114,9 @@ const EditProfileTemplate = () => {
   }, [id, navigate]);
 
   // Helper to get severity scales for a symptom
-  const getSeverityScalesForSymptom = (symptomId: string | number): SeverityScale[] => {
+  const getSeverityScalesForSymptom = (
+    symptomId: string | number,
+  ): SeverityScale[] => {
     return severityScalesBySymptom[symptomId] || [];
   };
 
@@ -110,7 +131,7 @@ const EditProfileTemplate = () => {
   const updateRequiredSymptom = (
     index: number,
     field: keyof RequiredSymptom,
-    value: string | number
+    value: string | number,
   ) => {
     const updated = [...requiredSymptoms];
     updated[index] = { ...updated[index], [field]: value };
@@ -132,7 +153,7 @@ const EditProfileTemplate = () => {
   const updateTypicalPresentSymptom = (
     index: number,
     field: keyof TypicalPresentSymptom,
-    value: string | number
+    value: string | number,
   ) => {
     const updated = [...typicalPresentSymptoms];
     updated[index] = {
@@ -144,7 +165,7 @@ const EditProfileTemplate = () => {
 
   const removeTypicalPresentSymptom = (index: number) => {
     setTypicalPresentSymptoms(
-      typicalPresentSymptoms.filter((_, i) => i !== index)
+      typicalPresentSymptoms.filter((_, i) => i !== index),
     );
   };
 
@@ -159,7 +180,7 @@ const EditProfileTemplate = () => {
   const updateOptionalSymptom = (
     index: number,
     field: keyof OptionalSymptom,
-    value: string | number
+    value: string | number,
   ) => {
     const updated = [...optionalSymptoms];
     updated[index] = {
@@ -193,7 +214,7 @@ const EditProfileTemplate = () => {
     setSelectedRules((prev) =>
       prev.includes(operationId)
         ? prev.filter((id) => id !== operationId)
-        : [...prev, operationId]
+        : [...prev, operationId],
     );
   };
 
@@ -201,7 +222,7 @@ const EditProfileTemplate = () => {
     setSelectedExclusionFlags((prev) =>
       prev.includes(operationId)
         ? prev.filter((id) => id !== operationId)
-        : [...prev, operationId]
+        : [...prev, operationId],
     );
   };
 
@@ -261,8 +282,12 @@ const EditProfileTemplate = () => {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Profile Template</h1>
-          <p className="mt-1 text-gray-600">Update diagnostic profile template</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Edit Profile Template
+          </h1>
+          <p className="mt-1 text-gray-600">
+            Update diagnostic profile template
+          </p>
         </div>
       </div>
 
@@ -270,7 +295,9 @@ const EditProfileTemplate = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* A. Select Diagnosis */}
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">A. Select Diagnosis</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            A. Select Diagnosis
+          </h2>
           <select
             value={selectedDiagnosis}
             onChange={(e) => setSelectedDiagnosis(e.target.value)}
@@ -288,7 +315,9 @@ const EditProfileTemplate = () => {
         {/* B. Required Symptoms */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">B. Required Symptoms</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              B. Required Symptoms
+            </h2>
             <button
               type="button"
               onClick={addRequiredSymptom}
@@ -307,7 +336,9 @@ const EditProfileTemplate = () => {
                   </label>
                   <select
                     value={symptom.symptomId}
-                    onChange={(e) => updateRequiredSymptom(index, "symptomId", e.target.value)}
+                    onChange={(e) =>
+                      updateRequiredSymptom(index, "symptomId", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">-- Select symptom --</option>
@@ -324,16 +355,24 @@ const EditProfileTemplate = () => {
                   </label>
                   <select
                     value={symptom.severityScaleId}
-                    onChange={(e) => updateRequiredSymptom(index, "severityScaleId", e.target.value)}
+                    onChange={(e) =>
+                      updateRequiredSymptom(
+                        index,
+                        "severityScaleId",
+                        e.target.value,
+                      )
+                    }
                     disabled={!symptom.symptomId}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">-- Select scale --</option>
-                    {getSeverityScalesForSymptom(symptom.symptomId).map((scale) => (
-                      <option key={scale.id} value={scale.id}>
-                        {scale.name}
-                      </option>
-                    ))}
+                    {getSeverityScalesForSymptom(symptom.symptomId).map(
+                      (scale) => (
+                        <option key={scale.id} value={scale.id}>
+                          {scale.name}
+                        </option>
+                      ),
+                    )}
                   </select>
                 </div>
                 <button
@@ -346,7 +385,9 @@ const EditProfileTemplate = () => {
               </div>
             ))}
             {requiredSymptoms.length === 0 && (
-              <p className="text-gray-500 text-sm py-2">No required symptoms added yet</p>
+              <p className="text-gray-500 text-sm py-2">
+                No required symptoms added yet
+              </p>
             )}
           </div>
         </Card>
@@ -354,7 +395,9 @@ const EditProfileTemplate = () => {
         {/* C. Typical Present Symptoms */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">C. Typical Present Symptoms</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              C. Typical Present Symptoms
+            </h2>
             <button
               type="button"
               onClick={addTypicalPresentSymptom}
@@ -374,7 +417,11 @@ const EditProfileTemplate = () => {
                   <select
                     value={symptom.symptomId}
                     onChange={(e) =>
-                      updateTypicalPresentSymptom(index, "symptomId", e.target.value)
+                      updateTypicalPresentSymptom(
+                        index,
+                        "symptomId",
+                        e.target.value,
+                      )
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
@@ -393,17 +440,23 @@ const EditProfileTemplate = () => {
                   <select
                     value={symptom.severityScaleId}
                     onChange={(e) =>
-                      updateTypicalPresentSymptom(index, "severityScaleId", e.target.value)
+                      updateTypicalPresentSymptom(
+                        index,
+                        "severityScaleId",
+                        e.target.value,
+                      )
                     }
                     disabled={!symptom.symptomId}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">-- Select scale --</option>
-                    {getSeverityScalesForSymptom(symptom.symptomId).map((scale) => (
-                      <option key={scale.id} value={scale.id}>
-                        {scale.name}
-                      </option>
-                    ))}
+                    {getSeverityScalesForSymptom(symptom.symptomId).map(
+                      (scale) => (
+                        <option key={scale.id} value={scale.id}>
+                          {scale.name}
+                        </option>
+                      ),
+                    )}
                   </select>
                 </div>
                 <div className="w-32">
@@ -417,7 +470,11 @@ const EditProfileTemplate = () => {
                     step="0.01"
                     value={symptom.p_present}
                     onChange={(e) =>
-                      updateTypicalPresentSymptom(index, "p_present", e.target.value)
+                      updateTypicalPresentSymptom(
+                        index,
+                        "p_present",
+                        e.target.value,
+                      )
                     }
                     placeholder="0.00"
                     className="w-full"
@@ -433,7 +490,9 @@ const EditProfileTemplate = () => {
               </div>
             ))}
             {typicalPresentSymptoms.length === 0 && (
-              <p className="text-gray-500 text-sm py-2">No typical present symptoms added yet</p>
+              <p className="text-gray-500 text-sm py-2">
+                No typical present symptoms added yet
+              </p>
             )}
           </div>
         </Card>
@@ -441,7 +500,9 @@ const EditProfileTemplate = () => {
         {/* D. Optional Symptoms */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">D. Optional Symptoms</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              D. Optional Symptoms
+            </h2>
             <button
               type="button"
               onClick={addOptionalSymptom}
@@ -480,17 +541,23 @@ const EditProfileTemplate = () => {
                   <select
                     value={symptom.severityScaleId}
                     onChange={(e) =>
-                      updateOptionalSymptom(index, "severityScaleId", e.target.value)
+                      updateOptionalSymptom(
+                        index,
+                        "severityScaleId",
+                        e.target.value,
+                      )
                     }
                     disabled={!symptom.symptomId}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">-- Select scale --</option>
-                    {getSeverityScalesForSymptom(symptom.symptomId).map((scale) => (
-                      <option key={scale.id} value={scale.id}>
-                        {scale.name}
-                      </option>
-                    ))}
+                    {getSeverityScalesForSymptom(symptom.symptomId).map(
+                      (scale) => (
+                        <option key={scale.id} value={scale.id}>
+                          {scale.name}
+                        </option>
+                      ),
+                    )}
                   </select>
                 </div>
                 <div className="w-32">
@@ -520,7 +587,9 @@ const EditProfileTemplate = () => {
               </div>
             ))}
             {optionalSymptoms.length === 0 && (
-              <p className="text-gray-500 text-sm py-2">No optional symptoms added yet</p>
+              <p className="text-gray-500 text-sm py-2">
+                No optional symptoms added yet
+              </p>
             )}
           </div>
         </Card>
@@ -528,7 +597,9 @@ const EditProfileTemplate = () => {
         {/* E. Absent Symptoms */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">E. Absent Symptoms</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              E. Absent Symptoms
+            </h2>
             <button
               type="button"
               onClick={addAbsentSymptom}
@@ -568,7 +639,9 @@ const EditProfileTemplate = () => {
               </div>
             ))}
             {absentSymptoms.length === 0 && (
-              <p className="text-gray-500 text-sm py-2">No absent symptoms added yet</p>
+              <p className="text-gray-500 text-sm py-2">
+                No absent symptoms added yet
+              </p>
             )}
           </div>
         </Card>
@@ -578,10 +651,15 @@ const EditProfileTemplate = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">F. Rules</h2>
           <div className="space-y-2">
             {operations.length === 0 ? (
-              <p className="text-gray-500 text-sm py-2">No operations available</p>
+              <p className="text-gray-500 text-sm py-2">
+                No operations available
+              </p>
             ) : (
               operations.map((operation) => (
-                <label key={operation.id} className="flex items-center gap-3 cursor-pointer">
+                <label
+                  key={operation.id}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={selectedRules.includes(operation.id)}
@@ -590,7 +668,9 @@ const EditProfileTemplate = () => {
                   />
                   <span className="text-gray-900">{operation.name}</span>
                   {operation.code && (
-                    <span className="text-xs text-gray-500">({operation.code})</span>
+                    <span className="text-xs text-gray-500">
+                      ({operation.code})
+                    </span>
                   )}
                 </label>
               ))
@@ -600,13 +680,20 @@ const EditProfileTemplate = () => {
 
         {/* G. Exclusion Flags */}
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">G. Exclusion Flags</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            G. Exclusion Flags
+          </h2>
           <div className="space-y-2">
             {operations.length === 0 ? (
-              <p className="text-gray-500 text-sm py-2">No operations available</p>
+              <p className="text-gray-500 text-sm py-2">
+                No operations available
+              </p>
             ) : (
               operations.map((operation) => (
-                <label key={operation.id} className="flex items-center gap-3 cursor-pointer">
+                <label
+                  key={operation.id}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={selectedExclusionFlags.includes(operation.id)}
@@ -615,7 +702,9 @@ const EditProfileTemplate = () => {
                   />
                   <span className="text-gray-900">{operation.name}</span>
                   {operation.code && (
-                    <span className="text-xs text-gray-500">({operation.code})</span>
+                    <span className="text-xs text-gray-500">
+                      ({operation.code})
+                    </span>
                   )}
                 </label>
               ))

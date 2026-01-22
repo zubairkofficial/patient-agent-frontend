@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, Search, X } from "lucide-react";
+import { Plus, Edit, Trash2, Search, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
 import type { Symptom, SymptomFormData } from "@/types/Symptom.types";
+import type { SeverityScale } from "@/types/SeverityScale.types";
 import { toast } from "sonner";
 import { symptomsService } from "@/services/Symptoms/symptoms.service";
+import { severityScaleService } from "@/services/SeverityScale/severity-scale.service";
 
 const Symptoms = () => {
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
@@ -21,6 +23,9 @@ const Symptoms = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof SymptomFormData, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewingSymptom, setViewingSymptom] = useState<Symptom | null>(null);
+  const [severityScales, setSeverityScales] = useState<SeverityScale[]>([]);
+  const [isLoadingSeverityScales, setIsLoadingSeverityScales] = useState(false);
 
   const loadSymptoms = async () => {
     try {
@@ -169,6 +174,28 @@ const Symptoms = () => {
     setSymptomToDelete(null);
   };
 
+  // Load severity scales for a symptom
+  const handleViewSeverityScales = async (symptom: Symptom) => {
+    try {
+      setViewingSymptom(symptom);
+      setIsLoadingSeverityScales(true);
+      const scales = await severityScaleService.getBySymptomId(symptom.id);
+      setSeverityScales(scales);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to load severity scales";
+      toast.error(message);
+      setSeverityScales([]);
+    } finally {
+      setIsLoadingSeverityScales(false);
+    }
+  };
+
+  const handleCloseSeverityScales = () => {
+    setViewingSymptom(null);
+    setSeverityScales([]);
+  };
+
   return (
     <div className="w-full min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
@@ -262,6 +289,14 @@ const Symptoms = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleViewSeverityScales(symptom)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-blue-200 bg-card text-blue-600 hover:bg-blue-50 transition-colors"
+                            aria-label="View severity scales"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="hidden sm:inline">View Scales</span>
+                          </button>
                           <button
                             onClick={() => handleEdit(symptom)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-foreground hover:bg-muted transition-colors"
@@ -452,6 +487,103 @@ const Symptoms = () => {
                   htmlType="button"
                 >
                   Confirm
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Severity Scales Modal */}
+        {viewingSymptom && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-lg border border-border shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    Severity Scales
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {viewingSymptom.code} - {viewingSymptom.name}
+                  </p>
+                </div>
+                <button
+                  onClick={handleCloseSeverityScales}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5 text-foreground" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {isLoadingSeverityScales ? (
+                  <div className="py-12 text-center">
+                    <p className="text-muted-foreground">Loading severity scales...</p>
+                  </div>
+                ) : severityScales.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <p className="text-muted-foreground">
+                      No severity scales found for this symptom.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {severityScales.map((scale) => (
+                      <div
+                        key={scale.id}
+                        className="bg-background rounded-lg border border-border p-5"
+                      >
+                        <h3 className="text-lg font-semibold text-foreground mb-4">
+                          {scale.name}
+                        </h3>
+                        
+                        {/* Detail Levels Display */}
+                        {scale.details && Object.keys(scale.details).length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="text-sm font-semibold text-foreground mb-3">
+                              Detail Levels
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {Object.entries(scale.details)
+                                .sort(([, a], [, b]) => (a as number) - (b as number))
+                                .map(([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="p-4 rounded-lg border border-border bg-muted/20 flex items-center justify-between"
+                                  >
+                                    <span className="font-medium text-foreground capitalize">
+                                      {key}
+                                    </span>
+                                    <span className="text-lg font-bold text-primary">
+                                      {value}
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Empty state if no details */}
+                        {(!scale.details || Object.keys(scale.details).length === 0) && (
+                          <p className="text-sm text-muted-foreground italic">
+                            No detail levels configured for this scale.
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex justify-end">
+                <Button
+                  type="secondary"
+                  size="medium"
+                  text="Close"
+                  onClick={handleCloseSeverityScales}
+                  htmlType="button"
+                >
+                  Close
                 </Button>
               </div>
             </div>

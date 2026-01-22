@@ -38,16 +38,6 @@ export class SeverityScaleService {
       name: scale.name || "",
       symptomId: scale.symptomId,
       details: scale.details || {},
-      symptom: scale.symptom
-        ? {
-            id: scale.symptom.id,
-            code: scale.symptom.code,
-            name: scale.symptom.name,
-            description: scale.symptom.description,
-          }
-        : undefined,
-      createdAt: scale.createdAt,
-      updatedAt: scale.updatedAt,
     };
   }
 

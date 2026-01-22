@@ -262,10 +262,7 @@ const CreateSeverityScale = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-foreground">
-                  Detail Levels{" "}
-                  <span className="text-muted-foreground text-xs">
-                    (optional)
-                  </span>
+                  Detail Levels
                 </label>
                 <Button
                   type="secondary"
@@ -334,7 +331,7 @@ const CreateSeverityScale = () => {
                 )}
               </div>
 
-              {detailEntries.length > 0 && (
+              {/* {detailEntries.length > 0 && (
                 <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                   <p className="text-sm font-medium text-blue-900 mb-2">
                     Preview:
@@ -343,7 +340,7 @@ const CreateSeverityScale = () => {
                     {JSON.stringify(buildDetailsObject(detailEntries), null, 2)}
                   </code>
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Form Actions */}

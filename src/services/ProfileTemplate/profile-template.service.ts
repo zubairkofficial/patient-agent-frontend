@@ -119,70 +119,7 @@ export class ProfileTemplateService {
     }
   }
 
-  /**
-   * Get all diagnoses
-   */
-  async getDiagnoses(): Promise<Diagnosis[]> {
-    try {
-      const response = await this.api.get("/diagnosis");
-      if (response.data.success && Array.isArray(response.data.data)) {
-        return response.data.data;
-      }
-      throw new Error("Invalid response format");
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * Get all symptoms
-   */
-  async getSymptoms(): Promise<Symptom[]> {
-    try {
-      const response = await this.api.get("/symptoms");
-      if (response.data.success && Array.isArray(response.data.data)) {
-        return response.data.data;
-      }
-      throw new Error("Invalid response format");
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * Get severity scales for a specific symptom
-   */
-  async getSeverityScalesBySymptom(
-    symptomId: string | number
-  ): Promise<SeverityScale[]> {
-    try {
-      const response = await this.api.get(
-        `/severity-scales?symptomId=${symptomId}`
-      );
-      if (response.data.success && Array.isArray(response.data.data)) {
-        return response.data.data;
-      }
-      throw new Error("Invalid response format");
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * Get all severity scales
-   */
-  async getAllSeverityScales(): Promise<SeverityScale[]> {
-    try {
-      const response = await this.api.get("/severity-scales");
-      if (response.data.success && Array.isArray(response.data.data)) {
-        return response.data.data;
-      }
-      throw new Error("Invalid response format");
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
+  
   /**
    * Get all operations
    */

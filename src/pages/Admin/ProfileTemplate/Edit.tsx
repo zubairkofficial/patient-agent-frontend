@@ -16,6 +16,7 @@ import type {
   OptionalSymptom,
   AbsentSymptom,
 } from "@/types/ProfileTemplate.types";
+import type { SeverityScale as SeverityScaleFull } from "@/types/SeverityScale.types";
 import { diagnosisService } from "@/services/Diagnosis/diagnosis.service";
 import { symptomsService } from "@/services/Symptoms/symptoms.service";
 import { severityScaleService } from "@/services/SeverityScale/severity-scale.service";
@@ -30,7 +31,7 @@ const EditProfileTemplate = () => {
   // Data sources
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
-  const [severityScales, setSeverityScales] = useState<SeverityScale[]>([]);
+  const [severityScales, setSeverityScales] = useState<SeverityScaleFull[]>([]);
   const [operations, setOperations] = useState<Operation[]>([]);
 
   // Form state
@@ -54,7 +55,7 @@ const EditProfileTemplate = () => {
 
   // Severity scales cache by symptom
   const [severityScalesBySymptom, setSeverityScalesBySymptom] = useState<
-    Record<string | number, SeverityScale[]>
+    Record<string | number, SeverityScaleFull[]>
   >({});
 
   // Load initial data and template
@@ -82,7 +83,7 @@ const EditProfileTemplate = () => {
         setOperations(operationData);
 
         // Pre-cache severity scales by symptom
-        const cache: Record<string | number, SeverityScale[]> = {};
+        const cache: Record<string | number, SeverityScaleFull[]> = {};
         symptomData.forEach((symptom: any) => {
           cache[symptom.id] = severityScaleData.filter(
             (scale) => scale.symptomId === symptom.id,
@@ -116,8 +117,150 @@ const EditProfileTemplate = () => {
   // Helper to get severity scales for a symptom
   const getSeverityScalesForSymptom = (
     symptomId: string | number,
-  ): SeverityScale[] => {
+  ): SeverityScaleFull[] => {
     return severityScalesBySymptom[symptomId] || [];
+  };
+
+  // Component to display severity scale details
+  const SeverityScaleDisplay = ({ scales }: { scales: SeverityScaleFull[] }) => {
+    if (!scales || scales.length === 0) {
+      return (
+        <p className="text-sm text-gray-500 italic mt-2">
+          No severity scales available for this symptom.
+        </p>
+      );
+    }
+
+    const renderDetails = (details: any) => {
+      // Helper to safely convert to string
+      const safeString = (val: any): string => {
+        if (val === null || val === undefined) return 'N/A';
+        if (typeof val === 'string') return val;
+        if (typeof val === 'number') return String(val);
+        if (typeof val === 'boolean') return String(val);
+        // If it's an object, try to extract a meaningful string
+        if (typeof val === 'object') {
+          if (val.description && typeof val.description === 'string') return val.description;
+          if (val.level && typeof val.level === 'string') return val.level;
+          if (val.name && typeof val.name === 'string') return val.name;
+          return JSON.stringify(val);
+        }
+        return String(val);
+      };
+
+      // Helper to safely convert to number or string for display
+      const safeValue = (val: any): string | number => {
+        if (val === null || val === undefined) return 'N/A';
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+          const num = Number(val);
+          return isNaN(num) ? val : num;
+        }
+        if (typeof val === 'object') {
+          if (typeof val.value === 'number') return val.value;
+          if (typeof val.level === 'number') return val.level;
+          if (typeof val.value === 'string') {
+            const num = Number(val.value);
+            return isNaN(num) ? val.value : num;
+          }
+          if (typeof val.level === 'string') {
+            const num = Number(val.level);
+            return isNaN(num) ? val.level : num;
+          }
+        }
+        return 'N/A';
+      };
+
+      // Handle case where details is an array of objects
+      if (Array.isArray(details)) {
+        return details
+          .sort((a, b) => {
+            const aVal = typeof a === 'number' ? a : (a as any)?.level || (a as any)?.value || 0;
+            const bVal = typeof b === 'number' ? b : (b as any)?.level || (b as any)?.value || 0;
+            return Number(aVal) - Number(bVal);
+          })
+          .map((item: any, index: number) => {
+            const displayKey = safeString(item.description || item.level || item.name || `Level ${index + 1}`);
+            const displayValue = safeValue(item.level || item.value || item);
+            return (
+              <div
+                key={index}
+                className="flex items-center justify-between p-2 rounded bg-white border border-gray-200"
+              >
+                <span className="text-xs font-medium text-gray-700 capitalize">
+                  {displayKey}
+                </span>
+                <span className="text-xs font-bold text-blue-600 ml-2">
+                  {displayValue}
+                </span>
+              </div>
+            );
+          });
+      }
+
+      // Handle case where details is an object
+      if (details && typeof details === 'object' && !Array.isArray(details)) {
+        return Object.entries(details)
+          .sort(([, a], [, b]) => {
+            const aVal = typeof a === 'number' ? a : (a as any)?.value || (a as any)?.level || 0;
+            const bVal = typeof b === 'number' ? b : (b as any)?.value || (b as any)?.level || 0;
+            return Number(aVal) - Number(bVal);
+          })
+          .map(([key, value]) => {
+            // Handle case where value might be an object with level/description
+            const displayValue = safeValue(value);
+            const displayKey = typeof value === 'object' && value !== null 
+              ? safeString((value as any)?.description || (value as any)?.level || (value as any)?.name || key)
+              : safeString(key);
+            
+            return (
+              <div
+                key={key}
+                className="flex items-center justify-between p-2 rounded bg-white border border-gray-200"
+              >
+                <span className="text-xs font-medium text-gray-700 capitalize">
+                  {displayKey}
+                </span>
+                <span className="text-xs font-bold text-blue-600 ml-2">
+                  {displayValue}
+                </span>
+              </div>
+            );
+          });
+      }
+
+      return null;
+    };
+
+    return (
+      <div className="mt-3 space-y-3">
+        <h4 className="text-sm font-semibold text-gray-700">
+          Available Severity Scales:
+        </h4>
+        {scales.map((scale) => (
+          <div
+            key={scale.id}
+            className="bg-gray-50 rounded-lg border border-gray-200 p-4"
+          >
+            <h5 className="text-sm font-medium text-gray-900 mb-2">
+              {scale.name}
+            </h5>
+            {scale.details && 
+             (Array.isArray(scale.details) ? scale.details.length > 0 : Object.keys(scale.details).length > 0) ? (
+              <div className="mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {renderDetails(scale.details)}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 italic">
+                No detail levels configured.
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   // Required Symptoms handlers
@@ -329,59 +472,66 @@ const EditProfileTemplate = () => {
           </div>
           <div className="space-y-4">
             {requiredSymptoms.map((symptom, index) => (
-              <div key={index} className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Symptom
-                  </label>
-                  <select
-                    value={symptom.symptomId}
-                    onChange={(e) =>
-                      updateRequiredSymptom(index, "symptomId", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">-- Select symptom --</option>
-                    {symptoms.map((sym) => (
-                      <option key={sym.id} value={sym.id}>
-                        {sym.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Severity Scale
-                  </label>
-                  <select
-                    value={symptom.severityScaleId}
-                    onChange={(e) =>
-                      updateRequiredSymptom(
-                        index,
-                        "severityScaleId",
-                        e.target.value,
-                      )
-                    }
-                    disabled={!symptom.symptomId}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="">-- Select scale --</option>
-                    {getSeverityScalesForSymptom(symptom.symptomId).map(
-                      (scale) => (
-                        <option key={scale.id} value={scale.id}>
-                          {scale.name}
+              <div key={index} className="space-y-3">
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Symptom
+                    </label>
+                    <select
+                      value={symptom.symptomId}
+                      onChange={(e) =>
+                        updateRequiredSymptom(index, "symptomId", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">-- Select symptom --</option>
+                      {symptoms.map((sym) => (
+                        <option key={sym.id} value={sym.id}>
+                          {sym.name}
                         </option>
-                      ),
-                    )}
-                  </select>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Severity Scale
+                    </label>
+                    <select
+                      value={symptom.severityScaleId}
+                      onChange={(e) =>
+                        updateRequiredSymptom(
+                          index,
+                          "severityScaleId",
+                          e.target.value,
+                        )
+                      }
+                      disabled={!symptom.symptomId}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">-- Select scale --</option>
+                      {getSeverityScalesForSymptom(symptom.symptomId).map(
+                        (scale) => (
+                          <option key={scale.id} value={scale.id}>
+                            {scale.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeRequiredSymptom(index)}
+                    className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeRequiredSymptom(index)}
-                  className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
-                >
-                  <X size={20} />
-                </button>
+                {symptom.symptomId && (
+                  <SeverityScaleDisplay
+                    scales={getSeverityScalesForSymptom(symptom.symptomId)}
+                  />
+                )}
               </div>
             ))}
             {requiredSymptoms.length === 0 && (
@@ -409,84 +559,91 @@ const EditProfileTemplate = () => {
           </div>
           <div className="space-y-4">
             {typicalPresentSymptoms.map((symptom, index) => (
-              <div key={index} className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Symptom
-                  </label>
-                  <select
-                    value={symptom.symptomId}
-                    onChange={(e) =>
-                      updateTypicalPresentSymptom(
-                        index,
-                        "symptomId",
-                        e.target.value,
-                      )
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">-- Select symptom --</option>
-                    {symptoms.map((sym) => (
-                      <option key={sym.id} value={sym.id}>
-                        {sym.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Severity Scale
-                  </label>
-                  <select
-                    value={symptom.severityScaleId}
-                    onChange={(e) =>
-                      updateTypicalPresentSymptom(
-                        index,
-                        "severityScaleId",
-                        e.target.value,
-                      )
-                    }
-                    disabled={!symptom.symptomId}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="">-- Select scale --</option>
-                    {getSeverityScalesForSymptom(symptom.symptomId).map(
-                      (scale) => (
-                        <option key={scale.id} value={scale.id}>
-                          {scale.name}
+              <div key={index} className="space-y-3">
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Symptom
+                    </label>
+                    <select
+                      value={symptom.symptomId}
+                      onChange={(e) =>
+                        updateTypicalPresentSymptom(
+                          index,
+                          "symptomId",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">-- Select symptom --</option>
+                      {symptoms.map((sym) => (
+                        <option key={sym.id} value={sym.id}>
+                          {sym.name}
                         </option>
-                      ),
-                    )}
-                  </select>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Severity Scale
+                    </label>
+                    <select
+                      value={symptom.severityScaleId}
+                      onChange={(e) =>
+                        updateTypicalPresentSymptom(
+                          index,
+                          "severityScaleId",
+                          e.target.value,
+                        )
+                      }
+                      disabled={!symptom.symptomId}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">-- Select scale --</option>
+                      {getSeverityScalesForSymptom(symptom.symptomId).map(
+                        (scale) => (
+                          <option key={scale.id} value={scale.id}>
+                            {scale.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+                  <div className="w-32">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Probability
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={symptom.p_present}
+                      onChange={(e) =>
+                        updateTypicalPresentSymptom(
+                          index,
+                          "p_present",
+                          e.target.value,
+                        )
+                      }
+                      placeholder="0.00"
+                      className="w-full"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeTypicalPresentSymptom(index)}
+                    className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <div className="w-32">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Probability
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={symptom.p_present}
-                    onChange={(e) =>
-                      updateTypicalPresentSymptom(
-                        index,
-                        "p_present",
-                        e.target.value,
-                      )
-                    }
-                    placeholder="0.00"
-                    className="w-full"
+                {symptom.symptomId && (
+                  <SeverityScaleDisplay
+                    scales={getSeverityScalesForSymptom(symptom.symptomId)}
                   />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeTypicalPresentSymptom(index)}
-                  className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
-                >
-                  <X size={20} />
-                </button>
+                )}
               </div>
             ))}
             {typicalPresentSymptoms.length === 0 && (
@@ -514,76 +671,83 @@ const EditProfileTemplate = () => {
           </div>
           <div className="space-y-4">
             {optionalSymptoms.map((symptom, index) => (
-              <div key={index} className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Symptom
-                  </label>
-                  <select
-                    value={symptom.symptomId}
-                    onChange={(e) =>
-                      updateOptionalSymptom(index, "symptomId", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">-- Select symptom --</option>
-                    {symptoms.map((sym) => (
-                      <option key={sym.id} value={sym.id}>
-                        {sym.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Severity Scale
-                  </label>
-                  <select
-                    value={symptom.severityScaleId}
-                    onChange={(e) =>
-                      updateOptionalSymptom(
-                        index,
-                        "severityScaleId",
-                        e.target.value,
-                      )
-                    }
-                    disabled={!symptom.symptomId}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="">-- Select scale --</option>
-                    {getSeverityScalesForSymptom(symptom.symptomId).map(
-                      (scale) => (
-                        <option key={scale.id} value={scale.id}>
-                          {scale.name}
+              <div key={index} className="space-y-3">
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Symptom
+                    </label>
+                    <select
+                      value={symptom.symptomId}
+                      onChange={(e) =>
+                        updateOptionalSymptom(index, "symptomId", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">-- Select symptom --</option>
+                      {symptoms.map((sym) => (
+                        <option key={sym.id} value={sym.id}>
+                          {sym.name}
                         </option>
-                      ),
-                    )}
-                  </select>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Severity Scale
+                    </label>
+                    <select
+                      value={symptom.severityScaleId}
+                      onChange={(e) =>
+                        updateOptionalSymptom(
+                          index,
+                          "severityScaleId",
+                          e.target.value,
+                        )
+                      }
+                      disabled={!symptom.symptomId}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">-- Select scale --</option>
+                      {getSeverityScalesForSymptom(symptom.symptomId).map(
+                        (scale) => (
+                          <option key={scale.id} value={scale.id}>
+                            {scale.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+                  <div className="w-32">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Probability
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={symptom.p_present}
+                      onChange={(e) =>
+                        updateOptionalSymptom(index, "p_present", e.target.value)
+                      }
+                      placeholder="0.00"
+                      className="w-full"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeOptionalSymptom(index)}
+                    className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <div className="w-32">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Probability
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={symptom.p_present}
-                    onChange={(e) =>
-                      updateOptionalSymptom(index, "p_present", e.target.value)
-                    }
-                    placeholder="0.00"
-                    className="w-full"
+                {symptom.symptomId && (
+                  <SeverityScaleDisplay
+                    scales={getSeverityScalesForSymptom(symptom.symptomId)}
                   />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeOptionalSymptom(index)}
-                  className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
-                >
-                  <X size={20} />
-                </button>
+                )}
               </div>
             ))}
             {optionalSymptoms.length === 0 && (
@@ -611,31 +775,38 @@ const EditProfileTemplate = () => {
           </div>
           <div className="space-y-4">
             {absentSymptoms.map((symptom, index) => (
-              <div key={index} className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Symptom
-                  </label>
-                  <select
-                    value={symptom.symptomId}
-                    onChange={(e) => updateAbsentSymptom(index, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              <div key={index} className="space-y-3">
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Symptom
+                    </label>
+                    <select
+                      value={symptom.symptomId}
+                      onChange={(e) => updateAbsentSymptom(index, e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">-- Select symptom --</option>
+                      {symptoms.map((sym) => (
+                        <option key={sym.id} value={sym.id}>
+                          {sym.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeAbsentSymptom(index)}
+                    className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
                   >
-                    <option value="">-- Select symptom --</option>
-                    {symptoms.map((sym) => (
-                      <option key={sym.id} value={sym.id}>
-                        {sym.name}
-                      </option>
-                    ))}
-                  </select>
+                    <X size={20} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeAbsentSymptom(index)}
-                  className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
-                >
-                  <X size={20} />
-                </button>
+                {symptom.symptomId && (
+                  <SeverityScaleDisplay
+                    scales={getSeverityScalesForSymptom(symptom.symptomId)}
+                  />
+                )}
               </div>
             ))}
             {absentSymptoms.length === 0 && (
@@ -655,25 +826,30 @@ const EditProfileTemplate = () => {
                 No operations available
               </p>
             ) : (
-              operations.map((operation) => (
-                <label
-                  key={operation.id}
-                  className="flex items-center gap-3 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedRules.includes(operation.id)}
-                    onChange={() => toggleRule(operation.id)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-900">{operation.name}</span>
-                  {operation.code && (
-                    <span className="text-xs text-gray-500">
-                      ({operation.code})
-                    </span>
-                  )}
-                </label>
-              ))
+              operations.map((operation) => {
+                const operationName = operation.name || `Operation ${operation.id}`;
+                const operationCode = operation.code;
+                
+                return (
+                  <label
+                    key={operation.id}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRules.includes(operation.id)}
+                      onChange={() => toggleRule(operation.id)}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-900 font-medium">{operationName}</span>
+                    {operationCode && (
+                      <span className="text-xs text-gray-500">
+                        ({operationCode})
+                      </span>
+                    )}
+                  </label>
+                );
+              })
             )}
           </div>
         </Card>
@@ -689,25 +865,30 @@ const EditProfileTemplate = () => {
                 No operations available
               </p>
             ) : (
-              operations.map((operation) => (
-                <label
-                  key={operation.id}
-                  className="flex items-center gap-3 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedExclusionFlags.includes(operation.id)}
-                    onChange={() => toggleExclusionFlag(operation.id)}
-                    className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500"
-                  />
-                  <span className="text-gray-900">{operation.name}</span>
-                  {operation.code && (
-                    <span className="text-xs text-gray-500">
-                      ({operation.code})
-                    </span>
-                  )}
-                </label>
-              ))
+              operations.map((operation) => {
+                const operationName = operation.name || `Operation ${operation.id}`;
+                const operationCode = operation.code;
+                
+                return (
+                  <label
+                    key={operation.id}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedExclusionFlags.includes(operation.id)}
+                      onChange={() => toggleExclusionFlag(operation.id)}
+                      className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+                    />
+                    <span className="text-gray-900 font-medium">{operationName}</span>
+                    {operationCode && (
+                      <span className="text-xs text-gray-500">
+                        ({operationCode})
+                      </span>
+                    )}
+                  </label>
+                );
+              })
             )}
           </div>
         </Card>

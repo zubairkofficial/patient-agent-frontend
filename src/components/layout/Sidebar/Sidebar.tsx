@@ -9,7 +9,9 @@ import {
   Settings,
   Menu,
   X,
-  LogOut
+  LogOut,
+  FileText,
+  FolderOpen,
 } from "lucide-react";
 import { useState } from "react";
 import { authService } from "@/services/Auth/auth.service";
@@ -45,6 +47,12 @@ const sidebarItems: SidebarItem[] = [
     label: "Treatments",
     icon: Pill,
     path: "/admin/treatments",
+  },
+  {
+    id: "profile-templates",
+    label: "Profile Templates",
+    icon: FolderOpen,
+    path: "/admin/profile-templates",
   },
   {
     id: "profile",

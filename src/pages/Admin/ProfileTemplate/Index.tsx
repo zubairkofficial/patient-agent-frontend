@@ -75,12 +75,12 @@ const ProfileTemplateIndex = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile Templates</h1>
-          <p className="mt-2 text-gray-600">Manage diagnostic profile templates</p>
+          <h1 className="text-3xl font-bold text-foreground">Profile Templates</h1>
+          <p className="mt-2 text-muted-foreground">Manage diagnostic profile templates</p>
         </div>
         <button
           onClick={() => navigate("/admin/profile-templates/create")}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md font-medium transition-colors"
         >
           <Plus size={20} />
           New Template
@@ -90,7 +90,7 @@ const ProfileTemplateIndex = () => {
       {/* Search Bar */}
       <Card className="p-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
           <Input
             type="text"
             placeholder="Search by diagnosis name or code..."
@@ -105,15 +105,15 @@ const ProfileTemplateIndex = () => {
       <Card>
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
-            <div className="text-gray-500">Loading templates...</div>
+            <div className="text-muted-foreground">Loading templates...</div>
           </div>
         ) : filteredTemplates.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12">
-            <p className="text-gray-500">No profile templates found</p>
+            <p className="text-muted-foreground">No profile templates found</p>
             {templates.length === 0 && (
               <button
                 onClick={() => navigate("/admin/profile-templates/create")}
-                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+                className="mt-4 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md font-medium transition-colors"
               >
                 Create First Template
               </button>
@@ -122,55 +122,55 @@ const ProfileTemplateIndex = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     ID
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Diagnosis
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Required Symptoms
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Total Rules
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border">
                 {filteredTemplates.map((template) => (
-                  <tr key={template.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-600">{template.id}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  <tr key={template.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{template.id}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-foreground">
                       {(template.diagnosis?.name || "N/A")}
                       {template.diagnosis?.code && (
-                        <span className="ml-2 text-xs text-gray-500">
+                        <span className="ml-2 text-xs text-muted-foreground">
                           ({template.diagnosis.code})
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {template.requiredSymptoms?.length || 0}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {(template.rules?.length || 0) + (template.exclusionFlags?.length || 0)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => navigate(`/admin/profile-templates/${template.id}/edit`)}
-                          className="inline-flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors"
+                          className="inline-flex items-center justify-center text-primary hover:text-primary/80 transition-colors"
                           title="Edit template"
                         >
                           <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(template)}
-                          className="inline-flex items-center justify-center text-red-600 hover:text-red-800 transition-colors"
+                          className="inline-flex items-center justify-center text-destructive hover:text-destructive/80 transition-colors"
                           title="Delete template"
                         >
                           <Trash2 size={18} />
@@ -187,22 +187,22 @@ const ProfileTemplateIndex = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <Card className="w-96 p-6">
-            <h2 className="text-lg font-bold text-gray-900">Delete Template</h2>
-            <p className="mt-2 text-gray-600">
+            <h2 className="text-lg font-bold text-foreground">Delete Template</h2>
+            <p className="mt-2 text-muted-foreground">
               Are you sure you want to delete this profile template? This action cannot be undone.
             </p>
             <div className="mt-6 flex gap-3 justify-end">
               <button
                 onClick={handleCancelDelete}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded-md font-medium transition-colors"
+                className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-md font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition-colors"
+                className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium transition-colors"
               >
                 Delete
               </button>

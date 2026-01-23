@@ -17,6 +17,8 @@ import DiagnosisPage from '@/pages/Admin/Diagnosis/Diagnosis'
 import SeverityScaleRoutes from '@/pages/Admin/SeverityScale/SeverityScaleRoutes'
 import ProfileTemplateRoutes from '@/pages/Admin/ProfileTemplate/ProfileTemplateRoutes'
 import Treatments from '@/pages/Admin/Treatments/Treatments'
+import Profile from '@/pages/Admin/Profile/Profile'
+import Settings from '@/pages/Admin/Settings/Settings'
 import { authService } from '@/services/Auth/auth.service'
 
 function AppRoutes() {
@@ -70,6 +72,8 @@ function AppRoutes() {
               <Route path="severity-scale/*" element={<SeverityScaleRoutes />} />
               <Route path="profile-templates/*" element={<ProfileTemplateRoutes />} />
               <Route path="treatments" element={<Treatments />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/admin/symptoms" replace />} />
             </Route>
           ) : (

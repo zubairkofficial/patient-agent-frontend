@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
-import type { SeverityScale } from "@/types/SeverityScale.types";
+import type { SeverityScale, SeverityScaleLevel } from "@/types/SeverityScale.types";
 import { toast } from "sonner";
 import { severityScaleService } from "@/services/SeverityScale/severity-scale.service";
 
@@ -183,28 +183,44 @@ const SeverityScaleIndex = () => {
 
                       {/* Details Display */}
                       {scale.details &&
-                        Object.keys(scale.details).length > 0 && (
+                        scale.details.levels &&
+                        Array.isArray(scale.details.levels) &&
+                        scale.details.levels.length > 0 && (
                           <div className="mt-4">
                             <h4 className="text-sm font-semibold text-foreground mb-3">
                               Detail Levels
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                              {Object.entries(scale.details)
-                                .sort(([, a]: any, [, b]: any) => a - b)
-                                .map(([key, value]: any) => (
+                              {scale.details.levels
+                                .sort((a: SeverityScaleLevel, b: SeverityScaleLevel) => a.level - b.level)
+                                .map((levelItem: SeverityScaleLevel) => (
                                   <div
-                                    key={key}
-                                    className="p-4 rounded-lg border border-border bg-muted/20 flex items-center justify-between"
+                                    key={levelItem.level}
+                                    className="p-4 rounded-lg border border-border bg-muted/20"
                                   >
-                                    <span className="font-medium text-foreground capitalize">
-                                      {key}
-                                    </span>
-                                    <span className="text-lg font-bold text-primary">
-                                      {value}
-                                    </span>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="font-medium text-foreground">
+                                        Level {levelItem.level}
+                                      </span>
+                                      <span className="text-lg font-bold text-primary">
+                                        {levelItem.level}
+                                      </span>
+                                    </div>
+                                    {levelItem.description && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {levelItem.description}
+                                      </p>
+                                    )}
                                   </div>
                                 ))}
                             </div>
+                            {scale.details.ranges && (
+                              <div className="mt-3 pt-3 border-t border-border">
+                                <p className="text-sm text-muted-foreground">
+                                  Range: <span className="font-medium text-foreground">{scale.details.ranges.min}</span> - <span className="font-medium text-foreground">{scale.details.ranges.max}</span>
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
                     </div>

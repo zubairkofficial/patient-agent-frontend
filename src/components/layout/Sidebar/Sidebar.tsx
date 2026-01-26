@@ -36,12 +36,12 @@ const sidebarItems: SidebarItem[] = [
     icon: Stethoscope,
     path: "/admin/diagnosis",
   },
-  {
-    id: "severity-scale",
-    label: "Severity Scale",
-    icon: Gauge,
-    path: "/admin/severity-scale",
-  },
+  // {
+  //   id: "severity-scale",
+  //   label: "Severity Scale",
+  //   icon: Gauge,
+  //   path: "/admin/severity-scale",
+  // },
   {
     id: "treatments",
     label: "Treatments",

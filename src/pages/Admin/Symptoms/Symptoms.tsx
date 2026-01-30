@@ -538,30 +538,47 @@ const Symptoms = () => {
                         </h3>
                         
                         {/* Detail Levels Display */}
-                        {scale.details && Object.keys(scale.details).length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="text-sm font-semibold text-foreground mb-3">
-                              Detail Levels
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                              {Object.entries(scale.details)
-                                .sort(([, a], [, b]) => (a as number) - (b as number))
-                                .map(([key, value]) => (
-                                  <div
-                                    key={key}
-                                    className="p-4 rounded-lg border border-border bg-muted/20 flex items-center justify-between"
-                                  >
-                                    <span className="font-medium text-foreground capitalize">
-                                      {key}
-                                    </span>
-                                    <span className="text-lg font-bold text-primary">
-                                      {value}
-                                    </span>
-                                  </div>
-                                ))}
+                        {scale.details &&
+                          scale.details.levels &&
+                          Array.isArray(scale.details.levels) &&
+                          scale.details.levels.length > 0 && (
+                            <div className="mt-4">
+                              <h4 className="text-sm font-semibold text-foreground mb-3">
+                                Detail Levels
+                              </h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {scale.details.levels
+                                  .sort((a, b) => a.level - b.level)
+                                  .map((levelItem) => (
+                                    <div
+                                      key={levelItem.level}
+                                      className="p-4 rounded-lg border border-border bg-muted/20"
+                                    >
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="font-medium text-foreground">
+                                          Level {levelItem.level}
+                                        </span>
+                                        <span className="text-lg font-bold text-primary">
+                                          {levelItem.level}
+                                        </span>
+                                      </div>
+                                      {levelItem.description && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          {levelItem.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                              </div>
+                              {scale.details.ranges && (
+                                <div className="mt-3 pt-3 border-t border-border">
+                                  <p className="text-sm text-muted-foreground">
+                                    Range: <span className="font-medium text-foreground">{scale.details.ranges.min}</span> - <span className="font-medium text-foreground">{scale.details.ranges.max}</span>
+                                  </p>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        )}
+                          )}
                         
                         {/* Empty state if no details */}
                         {(!scale.details || Object.keys(scale.details).length === 0) && (

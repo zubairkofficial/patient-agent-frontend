@@ -37,7 +37,13 @@ export class SeverityScaleService {
       id: String(scale.id),
       name: scale.name || "",
       symptomId: scale.symptomId,
-      details: scale.details || {},
+      details: scale.details || { levels: [], ranges: undefined },
+      symptom: scale.symptom ? {
+        id: scale.symptom.id,
+        code: scale.symptom.code || "",
+        name: scale.symptom.name || "",
+        description: scale.symptom.description,
+      } : undefined,
     };
   }
 

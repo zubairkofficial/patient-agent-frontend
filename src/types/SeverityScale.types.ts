@@ -1,10 +1,27 @@
 // API Response - Includes id from backend
+export interface SeverityScaleLevel {
+  level: number;
+  description: string;
+}
+
+export interface SeverityScaleDetails {
+  levels: SeverityScaleLevel[];
+  ranges?: {
+    min: number;
+    max: number;
+  };
+}
+
 export interface SeverityScale {
   id: string;
   name: string;
   symptomId: number;
-  details: {
-    [key: string]: number;
+  details: SeverityScaleDetails;
+  symptom?: {
+    id: number;
+    code: string;
+    name: string;
+    description?: string;
   };
 }
 

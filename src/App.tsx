@@ -20,7 +20,7 @@ import ClusterFocus from "@/pages/Users/Cluster/Cluster";
 import Chat from "@/pages/Users/Chats/Chat";
 import Symptoms from "@/pages/Admin/Symptoms/Symptoms";
 import DiagnosisPage from "@/pages/Admin/Diagnosis/Diagnosis";
-import SeverityScaleRoutes from "@/pages/Admin/SeverityScale/SeverityScaleRoutes";
+// import SeverityScaleRoutes from "@/pages/Admin/SeverityScale/SeverityScaleRoutes";
 import ProfileTemplateRoutes from "@/pages/Admin/ProfileTemplate/ProfileTemplateRoutes";
 import Treatments from "@/pages/Admin/Treatments/Treatments";
 import Profile from "@/pages/Admin/Profile/Profile";
@@ -79,10 +79,10 @@ function AppRoutes() {
               />
               <Route path="symptoms" element={<Symptoms />} />
               <Route path="diagnosis" element={<DiagnosisPage />} />
-              <Route
+              {/* <Route
                 path="severity-scale/*"
                 element={<SeverityScaleRoutes />}
-              />
+              /> */}
               <Route
                 path="profile-templates/*"
                 element={<ProfileTemplateRoutes />}

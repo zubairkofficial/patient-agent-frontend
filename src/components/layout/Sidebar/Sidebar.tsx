@@ -12,6 +12,7 @@ import {
   LogOut,
   FileText,
   FolderOpen,
+  PersonStanding,
 } from "lucide-react";
 import { useState } from "react";
 import { authService } from "@/services/Auth/auth.service";
@@ -54,6 +55,13 @@ const sidebarItems: SidebarItem[] = [
     icon: FolderOpen,
     path: "/admin/profile-templates",
   },
+  {
+    id: "patient-profile",
+    label: "Patient Profiles",
+    icon: PersonStanding,
+    path: "/admin/patient-profiles",
+  },
+
   {
     id: "profile",
     label: "Profile",
@@ -120,7 +128,9 @@ const Sidebar = () => {
                 <LayoutDashboard className="h-5 w-5 text-primary-foreground" />
               </div>
               <div className="flex flex-col">
-                <h2 className="text-lg font-bold text-foreground leading-tight">Admin Panel</h2>
+                <h2 className="text-lg font-bold text-foreground leading-tight">
+                  Admin Panel
+                </h2>
                 <p className="text-xs text-muted-foreground">Management</p>
               </div>
             </div>
@@ -140,7 +150,8 @@ const Sidebar = () => {
           <nav className="flex-1 px-4 py-6 space-y-2 min-h-0">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path ||
+              const isActive =
+                location.pathname === item.path ||
                 location.pathname.startsWith(item.path + "/");
 
               return (
@@ -150,9 +161,10 @@ const Sidebar = () => {
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg
                     transition-all duration-200
-                    ${isActive
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "text-foreground hover:bg-muted"
+                    ${
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "text-foreground hover:bg-muted"
                     }
                   `}
                 >

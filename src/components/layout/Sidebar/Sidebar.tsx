@@ -49,12 +49,12 @@ const sidebarItems: SidebarItem[] = [
     icon: Pill,
     path: "/admin/treatments",
   },
-  {
-    id: "profile-templates",
-    label: "Profile Templates",
-    icon: FolderOpen,
-    path: "/admin/profile-templates",
-  },
+  // {
+  //   id: "profile-templates",
+  //   label: "Profile Templates",
+  //   icon: FolderOpen,
+  //   path: "/admin/profile-templates",
+  // },
   {
     id: "patient-profile",
     label: "Patient Profiles",

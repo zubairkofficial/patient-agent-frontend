@@ -10,19 +10,23 @@ const DiagnosisPage = () => {
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingDiagnosis, setEditingDiagnosis] = useState<Diagnosis | null>(null);
+  const [editingDiagnosis, setEditingDiagnosis] = useState<Diagnosis | null>(
+    null,
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [diagnosisToDelete, setDiagnosisToDelete] = useState<Diagnosis | null>(null);
+  const [diagnosisToDelete, setDiagnosisToDelete] = useState<Diagnosis | null>(
+    null,
+  );
   const [formData, setFormData] = useState<DiagnosisFormData>({
     code: "",
     name: "",
     description: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof DiagnosisFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof DiagnosisFormData, string>>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
 
   // Filter diagnoses based on search query
   const filteredDiagnoses = diagnoses.filter((diagnosis) => {
@@ -40,7 +44,8 @@ const DiagnosisPage = () => {
       const data = await diagnosisService.getAll();
       setDiagnoses(data);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load diagnoses";
+      const message =
+        error instanceof Error ? error.message : "Failed to load diagnoses";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -82,11 +87,12 @@ const DiagnosisPage = () => {
 
   // Handle form input changes
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
-    const nextValue =
-      name === "code" ? value.toUpperCase() : value;
+    const nextValue = name === "code" ? value.toUpperCase() : value;
     setFormData((prev) => ({
       ...prev,
       [name]: nextValue,
@@ -112,7 +118,7 @@ const DiagnosisPage = () => {
       const exists = diagnoses.some(
         (d) =>
           d.code.toUpperCase() === normalizedCode &&
-          (!editingDiagnosis || d.id !== editingDiagnosis.id)
+          (!editingDiagnosis || d.id !== editingDiagnosis.id),
       );
       if (exists) {
         newErrors.code = "Diagnostic code must be unique";
@@ -147,7 +153,8 @@ const DiagnosisPage = () => {
       await loadDiagnoses();
       resetForm();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to save diagnosis";
+      const message =
+        error instanceof Error ? error.message : "Failed to save diagnosis";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -167,7 +174,8 @@ const DiagnosisPage = () => {
       toast.success("Diagnosis deleted successfully");
       await loadDiagnoses();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to delete diagnosis";
+      const message =
+        error instanceof Error ? error.message : "Failed to delete diagnosis";
       toast.error(message);
     } finally {
       setIsDeleteModalOpen(false);
@@ -220,7 +228,91 @@ const DiagnosisPage = () => {
         </div>
 
         {/* Diagnoses List */}
-        <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+        <div className="flex flex-col w-full">
+          {isLoading ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground">Loading diagnoses...</p>
+            </div>
+          ) : filteredDiagnoses.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground">
+                {searchQuery
+                  ? "No diagnoses found matching your search."
+                  : "No diagnoses available. Create your first diagnosis."}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col w-full">
+                <table className="flex flex-col w-full">
+                  <thead className="flex flex-row w-full items-center justify-between bg-muted/50 border-b border-border">
+                    <tr className="flex flex-row w-full items-center justify-between bg-muted/50 border-b border-border">
+                      <th className="py-3 flex w-full  items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Code
+                      </th>
+                      {/* <th className="py-3 flex w-full items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Name
+                      </th> */}
+                      <th className="py-3 flex w-full  items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th className="py-3 flex w-full  items-center justify-center text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="flex flex-col gap-2 w-full">
+                    {filteredDiagnoses.map((diagnosis) => (
+                      <tr
+                        key={diagnosis.id}
+                        className="flex flex-row w-full gap-2 hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="flex items-center justify-center w-full py-4 whitespace-nowrap">
+                          <div className="text-sm text-foreground font-mono">
+                            {diagnosis.code}
+                          </div>
+                        </td>
+                        {/* <td className="flex items-center justify-center w-full whitespace-nowrap">
+                          <div className="text-sm font-medium text-foreground">
+                            {diagnosis.name}
+                          </div>
+                        </td> */}
+                        <td className="flex items-center justify-start w-full">
+                          <div className="text-sm text-muted-foreground max-w-md">
+                            {diagnosis.description}
+                          </div>
+                        </td>
+                        <td className="flex items-center justify-center w-full whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(diagnosis)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-foreground hover:bg-muted transition-colors"
+                              aria-label="Edit diagnosis"
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                              onClick={() => handleDelete(diagnosis)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-card text-red-600 hover:bg-red-50 transition-colors"
+                              aria-label="Delete diagnosis"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="hidden sm:inline">Delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+ 
+ 
+        {/* <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
           {isLoading ? (
             <div className="p-12 text-center">
               <p className="text-muted-foreground">Loading diagnoses...</p>
@@ -299,7 +391,7 @@ const DiagnosisPage = () => {
               </table>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Create/Edit Form Modal */}
         {isFormOpen && (
@@ -369,7 +461,8 @@ const DiagnosisPage = () => {
                     htmlFor="description"
                     className="block text-sm font-medium text-foreground mb-2"
                   >
-                    Description <span className="text-muted-foreground">(optional)</span>
+                    Description{" "}
+                    <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <textarea
                     id="description"
@@ -387,7 +480,9 @@ const DiagnosisPage = () => {
                     `}
                   />
                   {errors.description && (
-                    <p className="mt-1 text-sm text-red-500">{errors.description}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.description}
+                    </p>
                   )}
                 </div>
 
@@ -405,13 +500,15 @@ const DiagnosisPage = () => {
                   <Button
                     type="primary"
                     size="medium"
-                    text={isSubmitting
-                      ? editingDiagnosis
-                        ? "Updating..."
-                        : "Creating..."
-                      : editingDiagnosis
-                      ? "Update Diagnosis"
-                      : "Create Diagnosis"}
+                    text={
+                      isSubmitting
+                        ? editingDiagnosis
+                          ? "Updating..."
+                          : "Creating..."
+                        : editingDiagnosis
+                          ? "Update Diagnosis"
+                          : "Create Diagnosis"
+                    }
                     htmlType="submit"
                     disabled={isSubmitting}
                   >
@@ -420,8 +517,8 @@ const DiagnosisPage = () => {
                         ? "Updating..."
                         : "Creating..."
                       : editingDiagnosis
-                      ? "Update Diagnosis"
-                      : "Create Diagnosis"}
+                        ? "Update Diagnosis"
+                        : "Create Diagnosis"}
                   </Button>
                 </div>
               </form>

@@ -82,7 +82,7 @@ const PatientProfileIndex = () => {
             No profiles found
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="flex w-full overflow-x-none">
             <table className="w-full">
               <thead className="border-b bg-muted/50">
                 <tr>

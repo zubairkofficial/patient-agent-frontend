@@ -10,9 +10,13 @@ const Treatments = () => {
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTreatment, setEditingTreatment] = useState<Treatment | null>(null);
+  const [editingTreatment, setEditingTreatment] = useState<Treatment | null>(
+    null,
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [treatmentToDelete, setTreatmentToDelete] = useState<Treatment | null>(null);
+  const [treatmentToDelete, setTreatmentToDelete] = useState<Treatment | null>(
+    null,
+  );
   const [formData, setFormData] = useState<TreatmentFormData>({
     code: "",
     name: "",
@@ -40,7 +44,8 @@ const Treatments = () => {
       const data = await treatmentsService.getAll();
       setTreatments(data);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load treatments";
+      const message =
+        error instanceof Error ? error.message : "Failed to load treatments";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -96,7 +101,9 @@ const Treatments = () => {
 
   // Handle form input changes
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
     const nextValue = name === "code" ? value.toUpperCase() : value;
@@ -126,7 +133,7 @@ const Treatments = () => {
       const exists = treatments.some(
         (t) =>
           t.code.toUpperCase() === normalizedCode &&
-          (!editingTreatment || t.id !== editingTreatment.id)
+          (!editingTreatment || t.id !== editingTreatment.id),
       );
       if (exists) {
         newErrors.code = "Treatment code must be unique";
@@ -161,7 +168,8 @@ const Treatments = () => {
       await loadTreatments();
       resetForm();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to save treatment";
+      const message =
+        error instanceof Error ? error.message : "Failed to save treatment";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -181,7 +189,8 @@ const Treatments = () => {
       toast.success("Treatment deleted successfully");
       await loadTreatments();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to delete treatment";
+      const message =
+        error instanceof Error ? error.message : "Failed to delete treatment";
       toast.error(message);
     } finally {
       setIsDeleteModalOpen(false);
@@ -204,7 +213,8 @@ const Treatments = () => {
               Treatments
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage treatments (code, name, optional description, links to diagnosis/cluster)
+              Manage treatments (code, name, optional description, links to
+              diagnosis/cluster)
             </p>
           </div>
           <Button
@@ -234,7 +244,91 @@ const Treatments = () => {
         </div>
 
         {/* Treatments List */}
-        <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+
+        <div className="flex flex-col w-full">
+          {isLoading ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground">Loading treatments...</p>
+            </div>
+          ) : filteredTreatments.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground">
+                {searchQuery
+                  ? "No treatments found matching your search."
+                  : "No treatments available. Create your first treatment."}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col w-full">
+                <table className="flex flex-col w-full">
+                  <thead className="flex flex-row w-full items-center justify-between bg-muted/50 border-b border-border">
+                    <tr className="flex flex-row w-full items-center justify-between bg-muted/50 border-b border-border">
+                      <th className="py-3 flex w-full  items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Code
+                      </th>
+                      <th className="py-3 flex w-full items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Name
+                      </th>
+                      {/* <th className="py-3 flex w-full  items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Description
+                      </th> */}
+                      <th className="py-3 flex w-full  items-center justify-center text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="flex flex-col gap-2 w-full">
+                    {filteredTreatments.map((treatment) => (
+                      <tr
+                        key={treatment.id}
+                        className="flex flex-row w-full gap-2 hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="flex items-center justify-center w-full py-4 whitespace-nowrap">
+                          <div className="text-sm text-foreground font-mono">
+                            {treatment.code}
+                          </div>
+                        </td>
+                        <td className="flex items-center justify-center w-full whitespace-nowrap">
+                          <div className="text-sm font-medium text-foreground">
+                            {treatment.name}
+                          </div>
+                        </td>
+                        {/* <td className="flex items-center justify-start w-full">
+                          <div className="text-sm text-muted-foreground max-w-md">
+                            {treatment.description}
+                          </div>
+                        </td> */}
+                        <td className="flex items-center justify-center w-full whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(treatment)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-foreground hover:bg-muted transition-colors"
+                              aria-label="Edit treatment"
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                              onClick={() => handleDelete(treatment)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-card text-red-600 hover:bg-red-50 transition-colors"
+                              aria-label="Delete treatment"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="hidden sm:inline">Delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
           {isLoading ? (
             <div className="p-12 text-center">
               <p className="text-muted-foreground">Loading treatments...</p>
@@ -313,7 +407,7 @@ const Treatments = () => {
               </table>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Create/Edit Form Modal */}
         {isFormOpen && (
@@ -383,7 +477,8 @@ const Treatments = () => {
                     htmlFor="description"
                     className="block text-sm font-medium text-foreground mb-2"
                   >
-                    Description <span className="text-muted-foreground">(optional)</span>
+                    Description{" "}
+                    <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <textarea
                     id="description"
@@ -415,13 +510,15 @@ const Treatments = () => {
                   <Button
                     type="primary"
                     size="medium"
-                    text={isSubmitting
-                      ? editingTreatment
-                        ? "Updating..."
-                        : "Creating..."
-                      : editingTreatment
-                      ? "Update Treatment"
-                      : "Create Treatment"}
+                    text={
+                      isSubmitting
+                        ? editingTreatment
+                          ? "Updating..."
+                          : "Creating..."
+                        : editingTreatment
+                          ? "Update Treatment"
+                          : "Create Treatment"
+                    }
                     htmlType="submit"
                     disabled={isSubmitting}
                   >
@@ -430,8 +527,8 @@ const Treatments = () => {
                         ? "Updating..."
                         : "Creating..."
                       : editingTreatment
-                      ? "Update Treatment"
-                      : "Create Treatment"}
+                        ? "Update Treatment"
+                        : "Create Treatment"}
                   </Button>
                 </div>
               </form>

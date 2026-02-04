@@ -20,7 +20,9 @@ const Symptoms = () => {
     name: "",
     description: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof SymptomFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof SymptomFormData, string>>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewingSymptom, setViewingSymptom] = useState<Symptom | null>(null);
@@ -50,7 +52,9 @@ const Symptoms = () => {
     (symptom) =>
       symptom.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       symptom.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (symptom.description ?? "").toLowerCase().includes(searchQuery.toLowerCase())
+      (symptom.description ?? "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
   );
 
   // Reset form
@@ -84,7 +88,9 @@ const Symptoms = () => {
 
   // Handle form input changes
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -183,7 +189,9 @@ const Symptoms = () => {
       setSeverityScales(scales);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to load severity scales";
+        error instanceof Error
+          ? error.message
+          : "Failed to load severity scales";
       toast.error(message);
       setSeverityScales([]);
     } finally {
@@ -202,10 +210,12 @@ const Symptoms = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Symptoms</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage symptoms (code, name, optional description)
-              </p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              Symptoms
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage symptoms (code, name, optional description)
+            </p>
           </div>
           <Button
             type="primary"
@@ -233,8 +243,91 @@ const Symptoms = () => {
           </div>
         </div>
 
+        <div className="flex flex-col w-full">
+          {isLoading ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground">Loading symptpms...</p>
+            </div>
+          ) : filteredSymptoms.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground">
+                {searchQuery
+                  ? "No symptpms found matching your search."
+                  : "No symptpms available. Create your first symptpms."}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col w-full">
+                <table className="flex flex-col w-full">
+                  <thead className="flex flex-row w-full items-center justify-between bg-muted/50 border-b border-border">
+                    <tr className="flex flex-row w-full items-center justify-between bg-muted/50 border-b border-border">
+                      <th className="py-3 flex w-full  items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Code
+                      </th>
+                      {/* <th className="py-3 flex w-full items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Name
+                      </th> */}
+                      <th className="py-3 flex w-full  items-center justify-center text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th className="py-3 flex w-full  items-center justify-center text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="flex flex-col gap-2 w-full">
+                    {filteredSymptoms.map((symptom) => (
+                      <tr
+                        key={symptom.id}
+                        className="flex flex-row w-full gap-2 hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="flex items-center justify-center w-full py-4 whitespace-nowrap">
+                          <div className="text-sm text-foreground font-mono">
+                            {symptom.code}
+                          </div>
+                        </td>
+                        {/* <td className="flex items-center justify-center w-full whitespace-nowrap">
+                          <div className="text-sm font-medium text-foreground">
+                            {symptom.name}
+                          </div>
+                        </td> */}
+                        <td className="flex items-center justify-start w-full">
+                          <div className="text-sm text-muted-foreground max-w-md">
+                            {symptom.description}
+                          </div>
+                        </td>
+                        <td className="flex items-center justify-center w-full whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(symptom)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-foreground hover:bg-muted transition-colors"
+                              aria-label="Edit symptom"
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                              onClick={() => handleDelete(symptom)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-card text-red-600 hover:bg-red-50 transition-colors"
+                              aria-label="Delete symptom"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="hidden sm:inline">Delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Symptoms List */}
-        <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+        {/* <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
           {isLoading ? (
             <div className="p-12 text-center">
               <p className="text-muted-foreground">Loading symptoms...</p>
@@ -295,7 +388,9 @@ const Symptoms = () => {
                             aria-label="View severity scales"
                           >
                             <Eye className="h-4 w-4" />
-                            <span className="hidden sm:inline">View Scales</span>
+                            <span className="hidden sm:inline">
+                              View Scales
+                            </span>
                           </button>
                           <button
                             onClick={() => handleEdit(symptom)}
@@ -321,7 +416,7 @@ const Symptoms = () => {
               </table>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Create/Edit Form Modal */}
         {isFormOpen && (
@@ -391,7 +486,8 @@ const Symptoms = () => {
                     htmlFor="description"
                     className="block text-sm font-medium text-foreground mb-2"
                   >
-                    Description <span className="text-muted-foreground">(optional)</span>
+                    Description{" "}
+                    <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <textarea
                     id="description"
@@ -409,7 +505,9 @@ const Symptoms = () => {
                     `}
                   />
                   {errors.description && (
-                    <p className="mt-1 text-sm text-red-500">{errors.description}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.description}
+                    </p>
                   )}
                 </div>
 
@@ -426,13 +524,15 @@ const Symptoms = () => {
                   <Button
                     type="primary"
                     size="medium"
-                    text={isSubmitting
-                      ? editingSymptom
-                        ? "Updating..."
-                        : "Creating..."
-                      : editingSymptom
-                      ? "Update Symptom"
-                      : "Create Symptom"}
+                    text={
+                      isSubmitting
+                        ? editingSymptom
+                          ? "Updating..."
+                          : "Creating..."
+                        : editingSymptom
+                          ? "Update Symptom"
+                          : "Create Symptom"
+                    }
                     htmlType="submit"
                     disabled={isSubmitting}
                   >
@@ -441,8 +541,8 @@ const Symptoms = () => {
                         ? "Updating..."
                         : "Creating..."
                       : editingSymptom
-                      ? "Update Symptom"
-                      : "Create Symptom"}
+                        ? "Update Symptom"
+                        : "Create Symptom"}
                   </Button>
                 </div>
               </form>
@@ -518,7 +618,9 @@ const Symptoms = () => {
               <div className="p-6">
                 {isLoadingSeverityScales ? (
                   <div className="py-12 text-center">
-                    <p className="text-muted-foreground">Loading severity scales...</p>
+                    <p className="text-muted-foreground">
+                      Loading severity scales...
+                    </p>
                   </div>
                 ) : severityScales.length === 0 ? (
                   <div className="py-12 text-center">
@@ -536,7 +638,7 @@ const Symptoms = () => {
                         <h3 className="text-lg font-semibold text-foreground mb-4">
                           {scale.name}
                         </h3>
-                        
+
                         {/* Detail Levels Display */}
                         {scale.details &&
                           scale.details.levels &&
@@ -573,15 +675,23 @@ const Symptoms = () => {
                               {scale.details.ranges && (
                                 <div className="mt-3 pt-3 border-t border-border">
                                   <p className="text-sm text-muted-foreground">
-                                    Range: <span className="font-medium text-foreground">{scale.details.ranges.min}</span> - <span className="font-medium text-foreground">{scale.details.ranges.max}</span>
+                                    Range:{" "}
+                                    <span className="font-medium text-foreground">
+                                      {scale.details.ranges.min}
+                                    </span>{" "}
+                                    -{" "}
+                                    <span className="font-medium text-foreground">
+                                      {scale.details.ranges.max}
+                                    </span>
                                   </p>
                                 </div>
                               )}
                             </div>
                           )}
-                        
+
                         {/* Empty state if no details */}
-                        {(!scale.details || Object.keys(scale.details).length === 0) && (
+                        {(!scale.details ||
+                          Object.keys(scale.details).length === 0) && (
                           <p className="text-sm text-muted-foreground italic">
                             No detail levels configured for this scale.
                           </p>

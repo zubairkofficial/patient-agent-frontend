@@ -92,39 +92,41 @@ const PatientProfileIndex = () => {
                   <th className="px-6 py-3 text-left text-sm font-semibold">
                     Diagnosis
                   </th>
+                   <th className="px-6 py-3 text-left text-sm font-semibold">
+                    Rationale
+                  </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold">
                     Saved
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">
-                    Created
-                  </th>
+                 
                   <th className="px-6 py-3 text-left text-sm font-semibold">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {profiles.map((p) => (
+                {profiles.map((p, i) => (
                   <tr
                     key={p.id}
                     className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-6 py-4 text-sm">{p.id}</td>
+                    <td className="px-6 py-4 text-sm">{i + 1}</td>
                     <td className="px-6 py-4 text-sm">
                       {p.primary_diagnosis.code ?? "N/A"}
+                    </td>
+                     <td className="px-6 py-4 text-sm">
+                     {p.primary_diagnosis.rationale}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {p.saved ? "Yes" : "No"}
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      {p.createdAt
-                        ? new Date(p.createdAt).toLocaleString()
-                        : "-"}
-                    </td>
+                   
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => navigate(`/admin/patient-profiles/${p.id}`)}
+                          onClick={() =>
+                            navigate(`/admin/patient-profiles/${p.id}`)
+                          }
                           className="text-primary"
                         >
                           <Eye size={16} />
@@ -145,8 +147,6 @@ const PatientProfileIndex = () => {
         )}
       </Card>
 
-
-
       {/* Delete confirm */}
       {isDeleteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -164,7 +164,7 @@ const PatientProfileIndex = () => {
               <Button
                 text="Delete"
                 onClick={confirmDelete}
-                className="bg-destructive text-destructive-foreground"
+                className="bg-destructive text-muted"
               ></Button>
             </div>
           </Card>

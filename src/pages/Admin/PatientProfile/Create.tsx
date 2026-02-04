@@ -170,6 +170,7 @@ const CreatePatientProfile = () => {
             ></Button>
             <Button
               text="Reset"
+              disabled={isGenerating}
               onClick={() => {
                 setProfileResp(null);
                 regeneratingRef.current = false;
@@ -195,7 +196,7 @@ const CreatePatientProfile = () => {
               <Button
                 text="Rgenerate"
                 onClick={startAutoRegenerate}
-                disabled={isAutoRegenerating}
+                disabled={isAutoRegenerating || isSaving}
               >
                 Regenerate
               </Button>
@@ -203,7 +204,7 @@ const CreatePatientProfile = () => {
                 <Button
                   text="Save"
                   onClick={stopAndSave}
-                  disabled={isSaving}
+                  disabled={isAutoRegenerating || isSaving}
                 ></Button>
               )}
             </div>

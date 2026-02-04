@@ -41,9 +41,10 @@ const ShowPatientProfile = () => {
       setIsSaving(true);
       const res = await patientProfileService.saveProfile(profile.id, true);
       toast.success("Profile saved");
-      setProfile(res);
+      setProfile((prev) => (prev ? { ...prev, saved: res.saved } : prev));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to save profile";
+      const message =
+        error instanceof Error ? error.message : "Failed to save profile";
       toast.error(message);
     } finally {
       setIsSaving(false);

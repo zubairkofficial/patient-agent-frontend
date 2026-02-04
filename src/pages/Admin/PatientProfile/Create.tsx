@@ -78,6 +78,7 @@ const CreatePatientProfile = () => {
         profileResp.id,
         save,
       );
+      console.log("Save profile response:", saved);
       setIsSaved(!!saved.saved);
       toast.success(save ? "Profile saved" : "Profile marked as unsaved");
     } catch (error) {
@@ -94,7 +95,7 @@ const CreatePatientProfile = () => {
       toast.error("Generate a profile first before regenerating.");
       return;
     }
-    if (isAutoRegenerating) return;
+    if (isAutoRegenerating || isSaving) return;
     regeneratingRef.current = true;
     setIsAutoRegenerating(true);
 
@@ -105,6 +106,9 @@ const CreatePatientProfile = () => {
       );
       // Replace shown profile and id if different
       setProfileResp(newResp);
+      setIsSaved(false);
+      setIsAutoRegenerating(false);
+      setIsSaving(false);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Regeneration failed";
@@ -112,11 +116,12 @@ const CreatePatientProfile = () => {
       // stop on error
       regeneratingRef.current = false;
       setIsAutoRegenerating(false);
+      setIsSaving(false);
     }
   };
 
   const stopAndSave = async () => {
-    regeneratingRef.current = false;
+    // regeneratingRef.current = false;
     setIsAutoRegenerating(false);
     if (profileResp) {
       await saveProfile(true);
@@ -200,13 +205,12 @@ const CreatePatientProfile = () => {
               >
                 Regenerate
               </Button>
-              {!isSaved && (
-                <Button
-                  text="Save"
-                  onClick={stopAndSave}
-                  disabled={isAutoRegenerating || isSaving}
-                ></Button>
-              )}
+
+              <Button
+                text="Save"
+                onClick={stopAndSave}
+                disabled={isAutoRegenerating || isSaving}
+              ></Button>
             </div>
           </div>
 
@@ -214,15 +218,13 @@ const CreatePatientProfile = () => {
             <div className="space-y-4 max-h-96 overflow-auto">
               <ProfileRenderer obj={profileResp.profile} />
 
-              {!isSaved && (
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    text="Save"
-                    onClick={() => void saveProfile(true)}
-                    disabled={isSaving}
-                  />
-                </div>
-              )}
+              <div className="mt-4 flex justify-end">
+                <Button
+                  text="Save"
+                  onClick={() => void saveProfile(true)}
+                  disabled={isSaving || isAutoRegenerating}
+                />
+              </div>
             </div>
           </div>
         </>

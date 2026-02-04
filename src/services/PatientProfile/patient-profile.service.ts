@@ -100,7 +100,7 @@ export class PatientProfileService {
           save,
         },
       );
-      return response.data?.data;
+      return response.data;
     } catch (error) {
       throw this.handleError(error);
     }

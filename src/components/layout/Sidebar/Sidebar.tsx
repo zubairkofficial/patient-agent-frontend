@@ -3,15 +3,15 @@ import {
   LayoutDashboard,
   Activity,
   Stethoscope,
-  Gauge,
+  // Gauge,
   Pill,
   User,
   Settings,
   Menu,
   X,
   LogOut,
-  FileText,
-  FolderOpen,
+  // FileText,
+  // FolderOpen,
   PersonStanding,
 } from "lucide-react";
 import { useState } from "react";
@@ -160,7 +160,7 @@ const Sidebar = () => {
                   onClick={() => handleNavigation(item.path)}
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg
-                    transition-all duration-200
+                    transition-all duration-200 cursor-pointer
                     ${
                       isActive
                         ? "bg-primary text-primary-foreground shadow-md"
@@ -179,7 +179,7 @@ const Sidebar = () => {
           <div className="px-4 py-4 border-t border-border flex-shrink-0 mt-auto">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-all duration-200"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-all duration-200 cursor-pointer"
               aria-label="Logout"
             >
               <LogOut className="h-5 w-5" />

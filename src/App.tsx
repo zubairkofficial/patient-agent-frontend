@@ -27,6 +27,8 @@ import Profile from "@/pages/Admin/Profile/Profile";
 import Settings from "@/pages/Admin/Settings/Settings";
 import { authService } from "@/services/Auth/auth.service";
 import PatientProfileRoutes from "./pages/Admin/PatientProfile/PatientProfileRoutes";
+import PatientProfileIndex from "./pages/Admin/PatientProfile/Index";
+import UserPatientProfiles from "./pages/Users/PatientProfiles/Index";
 
 function AppRoutes() {
   const location = useLocation();
@@ -104,10 +106,10 @@ function AppRoutes() {
             // Regular user routes
             <>
               <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
+                <Route index element={<UserPatientProfiles />} />
               </Route>
-              <Route path="/cluster/:clusterId" element={<ClusterFocus />} />
-              <Route path="/chat" element={<Chat />} />
+              {/* <Route path="/cluster/:clusterId" element={<ClusterFocus />} /> */}
+              <Route path="/chat/:patientProfileId" element={<Chat />} />
             </>
           )}
           <Route

@@ -27,7 +27,7 @@ const Card: React.FC<CardProps> = ({
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {Icon && <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />}
             {title && (
-              <h3 className="text-lg sm:text-xl font-semibold leading-none tracking-tight truncate">
+              <h3 className="text-lg sm:text-xl font-semibold leading-none tracking-tight">
                 {title}
               </h3>
             )}

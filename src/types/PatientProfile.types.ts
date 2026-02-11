@@ -127,8 +127,8 @@ export interface PatientProfile {
   id: number;
   primary_diagnosis: PrimaryDiagnosis;
   saved?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  case_metadata?: CaseMetadata;
+  gradingChats?: any[];
 }
 
 export interface PatientProfileResponse {

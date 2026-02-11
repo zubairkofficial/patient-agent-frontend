@@ -31,7 +31,7 @@ const UserPatientProfiles = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col pl-10 pr-10 pt-6 pb-10 gap-4 ">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
@@ -40,9 +40,6 @@ const UserPatientProfiles = () => {
           <p className="mt-2 text-muted-foreground">
             Browse generated patient profiles
           </p>
-        </div>
-        <div>
-          <Button text="Refresh" onClick={() => void loadProfiles()} />
         </div>
       </div>
 
@@ -63,12 +60,12 @@ const UserPatientProfiles = () => {
           {profiles.map((p) => (
             <Card
               key={p.id}
-              title={p.primary_diagnosis?.name ?? `Profile ${p.id}`}
-              description={p.primary_diagnosis?.code ?? ""}
+              title={p.primary_diagnosis?.name}
+              description={`Score: ${p?.gradingChats?.[0]?.totalScore ?? 0}`}
               footer={
                 <div className="flex items-center justify-between w-full">
                   <div className="text-sm text-muted-foreground">
-                    {p.saved ? "Saved" : ""}
+                    {/* {p.saved ? "Saved" : ""} */}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -79,17 +76,14 @@ const UserPatientProfiles = () => {
                 </div>
               }
             >
-              <div className="text-sm text-muted-foreground mb-2">
-                {p.primary_diagnosis?.rationale ? (
-                  <p className="line-clamp-3">
-                    {p.primary_diagnosis.rationale}
+              <div className="text-md text-muted-foreground mb-2">
+                {p.case_metadata?.chief_complaint ? (
+                  <p className="line-clamp-16">
+                    {p.case_metadata.chief_complaint}
                   </p>
                 ) : (
-                  <p className="text-xs">No rationale available</p>
+                  <p className="text-xs">No chief_complaint available</p>
                 )}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Created: {p.createdAt ?? "-"}
               </div>
             </Card>
           ))}

@@ -44,12 +44,12 @@ const UserPatientProfiles = () => {
       // Otherwise create grading chat
       const newChat = await gradingChatService.createGradingChat(profile.id);
 
-      if (!newChat?.id) {
+      if (!newChat?.gradingChat?.id) {
         toast.error("Failed to create grading chat");
         return;
       }
 
-      navigate(`/chat/${newChat.id}`);
+      navigate(`/chat/${newChat?.gradingChat?.id}`);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Something went wrong";

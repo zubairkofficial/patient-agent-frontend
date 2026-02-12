@@ -1,12 +1,11 @@
 export type MessageProps = {
-  isBot: boolean
-  message: string
-}
+  isBot: boolean;
+  message: string;
+};
 
 export type ChatMessage = {
-  id: string
-  isBot: boolean
-  message: string
-  avatarUrl?: string
-}
-
+  id: string;
+  agent: boolean;
+  content: string;
+  avatarUrl?: string;
+};

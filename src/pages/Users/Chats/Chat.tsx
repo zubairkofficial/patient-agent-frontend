@@ -9,15 +9,15 @@ import { toast } from "sonner";
 
 const Chat = () => {
   const navigate = useNavigate();
-  const params = useParams();
+  const { gradingChatId } = useParams();
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
-      isBot: true,
-      message: "Start Chat!",
+      agent: true,
+      content: "Start Chat!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -29,8 +29,8 @@ const Chat = () => {
 
     const userMessage: ChatMessage = {
       id: `${Date.now()}-user`,
-      isBot: false,
-      message: trimmed,
+      agent: false,
+      content: trimmed,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -43,15 +43,9 @@ const Chat = () => {
     }, 0);
 
     try {
-      const patientProfileId = Number(
-        params.patient_profile_id ?? params.patientProfileId ?? params.id,
-      );
-
-      const gradingChatId = patientProfileId;
-
       const payload = {
         content: trimmed,
-        gradingChatId,
+        gradingChatId: Number(gradingChatId),
       };
 
       const resp = await gradingChatService.chatAgent(payload);
@@ -82,8 +76,8 @@ const Chat = () => {
 
       const botMessage: ChatMessage = {
         id: `${Date.now()}-bot`,
-        isBot: true,
-        message: botReplies.join("\n\n"),
+        agent: true,
+        content: botReplies.join("\n\n"),
       };
 
       setMessages((prev) => [...prev, botMessage]);
@@ -114,28 +108,23 @@ const Chat = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const patientProfileId = Number(
-          params.patient_profile_id ?? params.patientProfileId ?? params.id,
-        );
-        if (!patientProfileId) return;
+        if (!gradingChatId) {
+          throw new Error("Invalid grading chat ID");
+        }
 
-        const data =
-          await gradingChatService.getChatsByPatientProfile(patientProfileId);
-
-        const mapped: ChatMessage[] = (data ?? []).map(
-          (item: any, idx: number) => ({
-            id: String(item.id ?? item._id ?? `${Date.now()}-${idx}`),
-            isBot: Boolean(
-              item.is_bot ??
-              item.isBot ??
-              (item.sender ? item.sender !== "user" : false),
-            ),
-            message: item.content ?? item.message ?? item.text ?? "",
-            avatarUrl: item.avatarUrl ?? item.avatar_url,
-          }),
+        const data = await gradingChatService.getChatsByPatientProfile(
+          Number(gradingChatId),
         );
 
-        if (mapped.length > 0) setMessages((prev) => [prev[0], ...mapped]);
+        // const mapped: ChatMessage[] = data?.messages?.map(
+        //   (item: any, idx: number) => ({
+        //     id: item.id,
+        //     agent: item.agent,
+        //     content: item.content,
+        //     avatarUrl: item.avatarUrl ?? item.avatar_url,
+        //   }),
+        // );
+        setMessages((prev) => [prev[0], ...data.messages]);
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to load chat";
@@ -144,7 +133,7 @@ const Chat = () => {
     };
 
     void load();
-  }, [params.patient_profile_id, params.patientProfileId, params.id]);
+  }, [gradingChatId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -183,7 +172,7 @@ const Chat = () => {
                         <Bot className="h-5 w-5 text-primary-foreground" />
                       </div>
                       <div className="rounded-2xl bg-muted px-8 py-6 shadow-sm text-base text-foreground">
-                        {messages[0].message}
+                        {messages[0].content}
                       </div>
                     </div>
                   </div>
@@ -194,7 +183,7 @@ const Chat = () => {
             {/* Remaining messages in regular chat layout */}
             <div className="w-full space-y-2 px-4">
               {messages.slice(1).map((m) => (
-                <Message key={m.id} isBot={m.isBot} message={m.message} />
+                <Message key={m.id} isBot={m.agent} message={m.content} />
               ))}
               <div ref={messagesEndRef} />
             </div>

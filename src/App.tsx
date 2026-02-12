@@ -109,7 +109,7 @@ function AppRoutes() {
                 <Route index element={<UserPatientProfiles />} />
               </Route>
               {/* <Route path="/cluster/:clusterId" element={<ClusterFocus />} /> */}
-              <Route path="/chat/:patientProfileId" element={<Chat />} />
+              <Route path="/chat/:gradingChatId" element={<Chat />} />
             </>
           )}
           <Route

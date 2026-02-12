@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { toast } from "sonner";
 import { patientProfileService } from "@/services/PatientProfile/patient-profile.service";
 import type { PatientProfile } from "@/types/PatientProfile.types";
+import { gradingChatService } from "@/services/GradingChat/gradingChat.service";
 
 const UserPatientProfiles = () => {
   const navigate = useNavigate();
@@ -29,6 +30,32 @@ const UserPatientProfiles = () => {
   useEffect(() => {
     void loadProfiles();
   }, []);
+
+  const handleChatClick = async (profile: PatientProfile) => {
+    try {
+      // If grading chat already exists → navigate
+      const existingChatId = profile?.gradingChats?.[0]?.id;
+
+      if (existingChatId) {
+        navigate(`/chat/${existingChatId}`);
+        return;
+      }
+
+      // Otherwise create grading chat
+      const newChat = await gradingChatService.createGradingChat(profile.id);
+
+      if (!newChat?.id) {
+        toast.error("Failed to create grading chat");
+        return;
+      }
+
+      navigate(`/chat/${newChat.id}`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Something went wrong";
+      toast.error(message);
+    }
+  };
 
   return (
     <div className="flex flex-col pl-10 pr-10 pt-6 pb-10 gap-4 ">
@@ -68,10 +95,7 @@ const UserPatientProfiles = () => {
                     {/* {p.saved ? "Saved" : ""} */}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      text="Chat"
-                      onClick={() => navigate(`/chat/${p.id}`)}
-                    />
+                    <Button text="Chat" onClick={() => handleChatClick(p)} />
                   </div>
                 </div>
               }

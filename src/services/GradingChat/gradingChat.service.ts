@@ -35,7 +35,7 @@ export class GradingChatService {
       const response = await this.api.post(`/grading-chat/`, {
         patientProfileId,
       });
-      return response.data?.data ?? response.data;
+      return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -46,7 +46,7 @@ export class GradingChatService {
       const response = await this.api.get(
         `/grading-chat/chats/${gradingChatId}`,
       );
-      return response.data
+      return response.data;
     } catch (error) {
       throw this.handleError(error);
     }

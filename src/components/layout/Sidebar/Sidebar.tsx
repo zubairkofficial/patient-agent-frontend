@@ -13,6 +13,8 @@ import {
   // FileText,
   // FolderOpen,
   PersonStanding,
+  DoorOpen,
+  Book,
 } from "lucide-react";
 import { useState } from "react";
 import { authService } from "@/services/Auth/auth.service";
@@ -55,6 +57,18 @@ const sidebarItems: SidebarItem[] = [
   //   icon: FolderOpen,
   //   path: "/admin/profile-templates",
   // },
+  {
+    id: "classes",
+    label: "Classes",
+    icon: DoorOpen,
+    path: "/admin/classes",
+  },
+  {
+    id: "courses",
+    label: "Courses",
+    icon: Book,
+    path: "/admin/courses",
+  },
   {
     id: "patient-profile",
     label: "Patient Profiles",

@@ -38,10 +38,16 @@ export class PatientProfileService {
   /**
    * Generate a patient profile based on a diagnosis
    */
-  async generate(diagnosis_id: number): Promise<PatientProfileResponse> {
+  async generate(
+    diagnosis_id: number,
+    course_id: number,
+    instruction?: string,
+  ): Promise<PatientProfileResponse> {
     try {
       const response = await this.api.post("/patient-profiles/generate", {
         diagnosis_id,
+        course_id,
+        instruction,
       });
       // Return raw data from server (no parsing)
       return response.data;

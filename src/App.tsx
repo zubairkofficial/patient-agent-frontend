@@ -29,6 +29,8 @@ import { authService } from "@/services/Auth/auth.service";
 import PatientProfileRoutes from "./pages/Admin/PatientProfile/PatientProfileRoutes";
 import PatientProfileIndex from "./pages/Admin/PatientProfile/Index";
 import UserPatientProfiles from "./pages/Users/PatientProfiles/Index";
+import ClassRoutes from "./pages/Admin/Class/ClassRoutes";
+import CourseRoutes from "./pages/Admin/Course/CourseRoutes";
 
 function AppRoutes() {
   const location = useLocation();
@@ -89,6 +91,8 @@ function AppRoutes() {
                 path="profile-templates/*"
                 element={<ProfileTemplateRoutes />}
               /> */}
+              <Route path="classes/*" element={<ClassRoutes />} />
+              <Route path="courses/*" element={<CourseRoutes />} />
 
               <Route
                 path="patient-profiles/*"

@@ -273,16 +273,16 @@ const Login = () => {
 
             {/* Divider */}
             <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
+              {/* <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
+              </div> */}
+              {/* <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">Or</span>
-              </div>
+              </div> */}
             </div>
 
             {/* Sign Up Link */}
-            <div className="text-center">
+            {/* <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
                 <Link
@@ -292,7 +292,7 @@ const Login = () => {
                   Create an account
                 </Link>
               </p>
-            </div>
+            </div> */}
           </form>
         </div>
       </div>

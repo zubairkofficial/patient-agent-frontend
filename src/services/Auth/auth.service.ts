@@ -12,6 +12,68 @@ export class AuthService {
         "Content-Type": "application/json",
       },
     });
+
+    this.api.interceptors.request.use((config) => {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+  }
+
+  async deleteUser(id: number) {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const response = await this.api.delete(`/auth/admin/user/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAllUsers() {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const response = await this.api.get("/auth/admin/all-users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async createUser(payload: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    classId: number;
+  }) {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const response = await this.api.post("/auth/admin/create-user", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
   }
 
   async register(payload: {
@@ -33,21 +95,18 @@ export class AuthService {
     }
   }
 
-  async login(payload: {
-    email: string;
-    password: string;
-  }) {
+  async login(payload: { email: string; password: string }) {
     try {
       // Login API call - works for both regular users and admins
       // Admin users are identified by their role in the database
       const response = await this.api.post("/auth/login", payload);
       const { data } = response.data;
       const { accessToken, user } = data || {};
-      
+
       if (accessToken) {
         localStorage.setItem("accessToken", accessToken);
       }
-      
+
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
         // Store user role from database (ADMIN or USER)
@@ -57,16 +116,14 @@ export class AuthService {
         }
       }
       console.log(response.data);
-      
+
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  async sendOTP(payload: {
-    email: string;
-  }) {
+  async sendOTP(payload: { email: string }) {
     try {
       const response = await this.api.post("/auth/send-otp", payload);
       return response.data;
@@ -75,10 +132,7 @@ export class AuthService {
     }
   }
 
-  async verifyOTP(payload: {
-    email: string;
-    otp: string;
-  }) {
+  async verifyOTP(payload: { email: string; otp: string }) {
     try {
       const response = await this.api.post("/auth/verify-otp", payload);
       return response.data;
@@ -87,9 +141,7 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(payload: {
-    email: string;
-  }) {
+  async forgotPassword(payload: { email: string }) {
     try {
       const response = await this.api.post("/auth/forgot-password", payload);
       return response.data;
@@ -98,10 +150,7 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(payload: {
-    email: string;
-    otp: string;
-  }) {
+  async verifyEmail(payload: { email: string; otp: string }) {
     try {
       const response = await this.api.post("/auth/verify-email", payload);
       return response.data;
@@ -174,33 +223,36 @@ export class AuthService {
   private handleError(error: unknown): Error {
     // Check if it's an Axios error
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{ message?: string; error?: string }>;
-      
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+
       // Server responded with error status
       if (axiosError.response) {
-        const message = 
-          axiosError.response.data?.message || 
-          axiosError.response.data?.error || 
-          axiosError.message || 
+        const message =
+          axiosError.response.data?.message ||
+          axiosError.response.data?.error ||
+          axiosError.message ||
           "An error occurred";
-        
+
         const customError = new Error(message);
         (customError as any).status = axiosError.response.status;
         (customError as any).data = axiosError.response.data;
         return customError;
       }
-      
+
       // Request was made but no response received
       if (axiosError.request) {
         return new Error("Network error. Please check your connection.");
       }
     }
-    
+
     // Handle other types of errors
     if (error instanceof Error) {
       return error;
     }
-    
+
     // Unknown error type
     return new Error("An unexpected error occurred");
   }

@@ -31,6 +31,7 @@ import PatientProfileIndex from "./pages/Admin/PatientProfile/Index";
 import UserPatientProfiles from "./pages/Users/PatientProfiles/Index";
 import ClassRoutes from "./pages/Admin/Class/ClassRoutes";
 import CourseRoutes from "./pages/Admin/Course/CourseRoutes";
+import UserRoutes from "./pages/Admin/User/UserRoutes";
 
 function AppRoutes() {
   const location = useLocation();
@@ -81,6 +82,8 @@ function AppRoutes() {
                 index
                 element={<Navigate to="/admin/symptoms" replace />}
               />
+              <Route path="users/*" element={<UserRoutes />} />
+
               <Route path="symptoms" element={<Symptoms />} />
               <Route path="diagnosis" element={<DiagnosisPage />} />
               {/* <Route
@@ -124,7 +127,7 @@ function AppRoutes() {
       ) : (
         <>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* <Route path="/register" element={<Register />} /> */}
           <Route path="/signup" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/forgot-password" element={<SendOTP />} />

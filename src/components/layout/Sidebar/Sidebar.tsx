@@ -28,6 +28,12 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   {
+    id: "users",
+    label: "Users",
+    icon: User,
+    path: "/admin/users",
+  },
+  {
     id: "symptoms",
     label: "Symptoms",
     icon: Activity,

@@ -167,7 +167,7 @@ const Sidebar = () => {
           </div>
 
           {/* Navigation items */}
-          <nav className="flex-1 px-4 py-6 space-y-2 min-h-0">
+          <nav className="flex-1 px-4 py-6 space-y-2 min-h-0 bg overflow-y-auto">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
               const isActive =
